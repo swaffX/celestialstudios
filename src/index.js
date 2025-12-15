@@ -21,7 +21,7 @@ const client = new Client({
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.GuildPresences // For boost detection
+        GatewayIntentBits.GuildPresences
     ],
     partials: [
         Partials.Message,
@@ -35,7 +35,7 @@ const client = new Client({
 // Collections
 client.commands = new Collection();
 client.cooldowns = new Collection();
-client.voiceStates = new Map(); // Track voice channel join times
+client.voiceStates = new Map();
 
 // Initialize giveaway handler
 client.giveawayHandler = new GiveawayHandler(client);
@@ -47,15 +47,28 @@ client.initSystems = async () => {
     await initStatsEmbed(client);
 };
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => {
-        logger.success('Connected to MongoDB');
-    })
-    .catch((error) => {
-        logger.error('MongoDB connection error:', error);
-        process.exit(1);
-    });
+// MongoDB Connection with retry logic
+const connectDB = async (retries = 5) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            await mongoose.connect(process.env.MONGODB_URI, {
+                serverSelectionTimeoutMS: 30000,
+                socketTimeoutMS: 45000,
+                maxPoolSize: 10,
+                bufferCommands: false
+            });
+            logger.success('Connected to MongoDB');
+            return true;
+        } catch (error) {
+            logger.error(`MongoDB connection attempt ${i + 1}/${retries} failed:`, error.message);
+            if (i < retries - 1) {
+                logger.info(`Retrying in 5 seconds...`);
+                await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+        }
+    }
+    return false;
+};
 
 // Handle MongoDB events
 mongoose.connection.on('disconnected', () => {
@@ -66,9 +79,20 @@ mongoose.connection.on('reconnected', () => {
     logger.success('MongoDB reconnected');
 });
 
-// Load handlers
+mongoose.connection.on('error', (err) => {
+    logger.error('MongoDB error:', err.message);
+});
+
+// Load handlers and start bot
 (async () => {
     try {
+        // Connect to MongoDB first
+        const dbConnected = await connectDB();
+        if (!dbConnected) {
+            logger.error('Could not connect to MongoDB after multiple retries. Exiting...');
+            process.exit(1);
+        }
+
         await commandHandler(client);
         await eventHandler(client);
 
