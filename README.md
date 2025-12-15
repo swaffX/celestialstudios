@@ -1,121 +1,180 @@
-# 🤖 Celestial Studios Discord Bot
+# Celestial Studios Discord Bot
 
-Roblox anime oyun geliştiricileri topluluğu için tasarlanmış kapsamlı Discord botu.
+A feature-rich Discord bot built with discord.js v14 for Roblox game communities.
 
-## 🚀 Özellikler
+## Features
 
-### 📊 Seviye Sistemi
-- Mesaj ve ses aktivitesiyle XP kazanma
-- Adaletli XP sistemi (spam koruması, günlük limit)
-- Otomatik seviye rolleri
-- Detaylı sıralama tablosu
+### 📊 Leveling System
+- XP per message and voice time
+- Anti-spam and daily limits
+- Level-up notifications
+- Level roles auto-assignment
+- Leaderboard system
 
-### 🎁 Çekiliş Sistemi
-- Katılım şartları (rol, seviye, mesaj, hesap yaşı)
-- Çoklu kazanan desteği
-- Otomatik bitiş ve bildirim
-- Yeniden çekim özelliği
+### 🎁 Giveaway System
+- Multiple requirements (role, level, messages, account age, invites)
+- Multiple winners support
+- Timed auto-endings
+- Reroll functionality
 
-### 🏆 Başarım & Rozet Sistemi
-- 12 farklı başarım
-- Otomatik rozet ödülleri
-- İlerleme takibi
+### 🏆 Achievement System
+- 16+ achievements to unlock
+- Badge rewards
+- XP rewards
+- Progress tracking
 
-### 🛡️ Moderasyon
-- Ban, kick, mute (timeout)
-- Uyarı sistemi
-- Mod log kanalı
+### 📨 Invite System
+- Invite tracking
+- Fake invite detection & penalty
+- Bonus invites (admin)
+- Special giveaway access for top inviters
 
-### 🎫 Ticket Sistemi
-- Tek tuşla ticket açma
-- Özel kanal oluşturma
-- Kullanıcı ekleme
+### 🛡️ Moderation
+- Ban, Kick, Mute (timeout)
+- Warning system
+- Mod log channel
 
-### ⚙️ Ek Özellikler
-- Hoşgeldin/Güle güle mesajları
-- Otomatik rol
-- Detaylı istatistikler
+### 🎫 Ticket System
+- Ticket panel with buttons
+- Add users to tickets
+- Auto transcript logging
 
-## 📋 Kurulum
+### 👋 Welcome & Farewell
+- Customizable messages
+- Auto-role assignment
 
-### 1. Gereksinimleri Yükle
+## Commands
+
+| Category | Commands |
+|----------|----------|
+| Leveling | `/rank`, `/leaderboard`, `/setlevelchannel`, `/addlevelrole` |
+| Giveaways | `/giveaway create/end/reroll/list` |
+| Achievements | `/achievements`, `/badges` |
+| Invites | `/invites`, `/inviteleaderboard`, `/addinvites` |
+| Moderation | `/ban`, `/kick`, `/mute`, `/warn`, `/warnings`, `/clearwarnings` |
+| Settings | `/settings`, `/setwelcome`, `/setfarewell`, `/setautorole`, `/setmodlog` |
+| Tickets | `/ticket setup/close/add` |
+| Utility | `/help`, `/ping`, `/info`, `/userinfo`, `/avatar`, `/stats` |
+
+## Installation
+
+### Prerequisites
+- Node.js 18+
+- MongoDB (Atlas or local)
+
+### Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/swaffX/celestialstudios.git
+cd celestialstudios
+```
+
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-### 2. Ortam Değişkenlerini Ayarla
-`.env` dosyasını düzenle:
+3. Create `.env` file:
 ```env
-DISCORD_TOKEN=your_token_here
+# Discord Bot
+DISCORD_TOKEN=your_discord_bot_token
 CLIENT_ID=your_client_id
-MONGODB_URI=mongodb://localhost:27017/celestialstudios
+
+# MongoDB Atlas Connection
+MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/celestialstudios
 ```
 
-### 3. Botu Başlat
+4. Start the bot:
 ```bash
 npm start
 ```
 
-### 4. PM2 ile Çalıştır (VPS için)
+## VPS Deployment
+
+### Step 1: Connect to VPS
 ```bash
+ssh root@your-vps-ip
+```
+
+### Step 2: Install Requirements
+```bash
+# Update system
+apt update && apt upgrade -y
+
+# Install Node.js 18
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+apt install -y nodejs
+
+# Install PM2
 npm install -g pm2
-pm2 start src/index.js --name "celestial-bot"
+
+# Install Git
+apt install -y git
+```
+
+### Step 3: Clone and Setup
+```bash
+# Clone repository
+git clone https://github.com/swaffX/celestialstudios.git
+cd celestialstudios
+
+# Install dependencies
+npm install
+
+# Create .env file
+nano .env
+# Add your environment variables
+```
+
+### Step 4: Start with PM2
+```bash
+# Start bot
+pm2 start src/index.js --name celestialbot
+
+# Save PM2 config
 pm2 save
+
+# Setup auto-restart on reboot
 pm2 startup
 ```
 
-## 📝 Komutlar
-
-### Seviye
-- `/rank` - Seviye ve XP bilgilerini gösterir
-- `/leaderboard` - Sunucu sıralamasını gösterir
-- `/setlevelchannel` - Seviye bildirim kanalını ayarlar
-- `/addlevelrole` - Seviye rolü ekler
-
-### Çekiliş
-- `/giveaway create` - Yeni çekiliş oluşturur
-- `/giveaway end` - Çekilişi erken bitirir
-- `/giveaway reroll` - Yeniden çekim yapar
-- `/giveaway list` - Aktif çekilişleri listeler
-
-### Başarım
-- `/achievements` - Başarımlarını gösterir
-- `/badges` - Rozetlerini gösterir
-
-### Moderasyon
-- `/ban` - Kullanıcıyı yasaklar
-- `/kick` - Kullanıcıyı atar
-- `/mute` - Kullanıcıyı susturur
-- `/warn` - Uyarı verir
-- `/warnings` - Uyarıları gösterir
-- `/clearwarnings` - Uyarıları temizler
-
-### Ticket
-- `/ticket setup` - Ticket sistemini kurar
-- `/ticket close` - Ticket'ı kapatır
-- `/ticket add` - Kullanıcı ekler
-
-### Ayarlar
-- `/setwelcome` - Hoşgeldin kanalını ayarlar
-- `/setfarewell` - Güle güle kanalını ayarlar
-- `/setautorole` - Otomatik rol ayarlar
-- `/setmodlog` - Mod log kanalını ayarlar
-- `/settings` - Tüm ayarları gösterir
-
-### Yardımcı
-- `/ping` - Bot gecikmesini gösterir
-- `/help` - Tüm komutları gösterir
-- `/info` - Sunucu bilgilerini gösterir
-- `/userinfo` - Kullanıcı bilgilerini gösterir
-- `/avatar` - Avatar gösterir
-- `/stats` - Bot istatistiklerini gösterir
-
-## 🔧 Geliştirme
-
+### PM2 Commands
 ```bash
-npm run dev
+pm2 status          # View status
+pm2 logs celestialbot    # View logs
+pm2 restart celestialbot # Restart bot
+pm2 stop celestialbot    # Stop bot
 ```
 
-## 📄 Lisans
+### Updating the Bot
+```bash
+cd celestialstudios
+git pull
+npm install
+pm2 restart celestialbot
+```
 
-MIT License - Celestial Studios
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DISCORD_TOKEN` | Your Discord bot token |
+| `CLIENT_ID` | Your Discord application client ID |
+| `MONGODB_URI` | MongoDB connection string |
+
+## Database
+
+The bot uses MongoDB with the following collections:
+- `users` - User data (XP, level, achievements, invites)
+- `guilds` - Server settings and configurations
+- `giveaways` - Active and ended giveaways
+- `tickets` - Ticket records
+
+## License
+
+MIT License
+
+## Support
+
+For issues or questions, create an issue on GitHub.
