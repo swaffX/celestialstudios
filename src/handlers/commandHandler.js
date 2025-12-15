@@ -19,6 +19,10 @@ module.exports = async (client) => {
 
         for (const file of commandFiles) {
             const filePath = path.join(folderPath, file);
+
+            // Clear cache to get updated commands
+            delete require.cache[require.resolve(filePath)];
+
             const command = require(filePath);
 
             if ('data' in command && 'execute' in command) {
@@ -31,27 +35,35 @@ module.exports = async (client) => {
         }
     }
 
+    logger.info(`Total ${commands.length} commands loaded.`);
+
     // Register slash commands
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
     try {
-        logger.info(`Registering ${commands.length} slash commands...`);
-
-        // Register to test guild first for faster updates
-        if (process.env.TEST_GUILD_ID) {
-            await rest.put(
-                Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.TEST_GUILD_ID),
-                { body: commands }
-            );
-            logger.success(`Registered commands to test guild`);
-        }
-
-        // Also register globally
+        // FIRST: Clear ALL global commands to remove duplicates
+        logger.info('Clearing old global commands...');
         await rest.put(
             Routes.applicationCommands(process.env.CLIENT_ID),
-            { body: commands }
+            { body: [] }
         );
-        logger.success(`Registered ${commands.length} global commands`);
+        logger.success('Global commands cleared');
+
+        // Register to specific guild for INSTANT updates
+        if (process.env.GUILD_ID) {
+            await rest.put(
+                Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+                { body: commands }
+            );
+            logger.success(`Registered ${commands.length} commands to guild (instant update)`);
+        } else {
+            // If no guild ID, register globally (takes up to 1 hour)
+            await rest.put(
+                Routes.applicationCommands(process.env.CLIENT_ID),
+                { body: commands }
+            );
+            logger.success(`Registered ${commands.length} global commands`);
+        }
 
     } catch (error) {
         logger.error('Failed to register commands:', error);
