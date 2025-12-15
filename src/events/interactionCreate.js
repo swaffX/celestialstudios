@@ -1,6 +1,7 @@
 const { Events } = require('discord.js');
 const logger = require('../utils/logger');
 const embedBuilder = require('../utils/embedBuilder');
+const { handleStatsButton } = require('../systems/statsEmbedSystem');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -29,8 +30,8 @@ module.exports = {
                 logger.error(`Error executing ${interaction.commandName}:`, error);
 
                 const errorEmbed = embedBuilder.error(
-                    'Hata',
-                    'Komut çalıştırılırken bir hata oluştu.'
+                    'Error',
+                    'An error occurred while executing the command.'
                 );
 
                 if (interaction.replied || interaction.deferred) {
@@ -47,6 +48,12 @@ module.exports = {
                 // Giveaway entry button
                 if (interaction.customId === 'giveaway_enter') {
                     await client.giveawayHandler.handleEntry(interaction);
+                    return;
+                }
+
+                // Stats embed period buttons
+                if (interaction.customId === 'stats_weekly' || interaction.customId === 'stats_monthly') {
+                    await handleStatsButton(interaction);
                     return;
                 }
 
@@ -80,7 +87,7 @@ module.exports = {
 
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.reply({
-                        content: '❌ Bir hata oluştu!',
+                        content: '❌ An error occurred!',
                         ephemeral: true
                     });
                 }

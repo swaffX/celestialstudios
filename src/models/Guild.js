@@ -26,18 +26,18 @@ const guildSchema = new mongoose.Schema({
     modRoles: [{ type: String }],
     ticketSupportRoles: [{ type: String }],
 
-    // Messages
+    // Messages (English)
     welcomeMessage: {
         type: String,
-        default: 'Hoş geldin {user}! 🎉 Sunucumuza katıldığın için teşekkürler.'
+        default: 'Welcome {user}! 🎉 Thanks for joining our server.'
     },
     farewellMessage: {
         type: String,
-        default: '{user} sunucudan ayrıldı. Görüşmek üzere! 👋'
+        default: '{user} has left the server. Goodbye! 👋'
     },
     levelUpMessage: {
         type: String,
-        default: 'Tebrikler {user}! 🎊 **Seviye {level}** oldun!'
+        default: 'Congratulations {user}! 🎊 You reached **Level {level}**!'
     },
 
     // Features Toggle
@@ -48,6 +48,33 @@ const guildSchema = new mongoose.Schema({
         moderation: { type: Boolean, default: true },
         tickets: { type: Boolean, default: true },
         giveaways: { type: Boolean, default: true }
+    },
+
+    // Booster System
+    boosterSystem: {
+        enabled: { type: Boolean, default: false },
+        channelId: { type: String, default: null },
+        messageId: { type: String, default: null },
+        bannerUrl: { type: String, default: null }
+    },
+
+    // Server Stats System (Voice channel counters)
+    serverStats: {
+        enabled: { type: Boolean, default: false },
+        channelIds: {
+            categoryId: { type: String, default: null },
+            allMembers: { type: String, default: null },
+            members: { type: String, default: null },
+            bots: { type: String, default: null }
+        }
+    },
+
+    // Stats Embed System (Leaderboard display)
+    statsEmbed: {
+        enabled: { type: Boolean, default: false },
+        channelId: { type: String, default: null },
+        messageId: { type: String, default: null },
+        period: { type: String, default: 'weekly' }
     },
 
     // Stats

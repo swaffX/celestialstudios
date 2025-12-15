@@ -5,6 +5,7 @@ const config = require('../config');
 const embedBuilder = require('../utils/embedBuilder');
 const achievementChecker = require('../utils/achievementChecker');
 const logger = require('../utils/logger');
+const { triggerStatsUpdate } = require('../systems/serverStatsSystem');
 
 // Import invite cache
 const inviteCreateEvent = require('./inviteCreate');
@@ -19,6 +20,9 @@ module.exports = {
 
             // === INVITE TRACKING ===
             await this.trackInvite(member, client, guildSettings);
+
+            // === SERVER STATS UPDATE ===
+            triggerStatsUpdate(member.guild);
 
             // Check if welcome feature is enabled
             if (!guildSettings.features.welcome) return;

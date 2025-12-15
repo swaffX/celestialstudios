@@ -22,6 +22,11 @@ module.exports = {
         // Start giveaway handler
         client.giveawayHandler.start();
 
+        // Initialize custom systems (booster, server stats, stats embed)
+        if (client.initSystems) {
+            await client.initSystems();
+        }
+
         // Log guild names
         client.guilds.cache.forEach(guild => {
             logger.info(`Connected to: ${guild.name} (${guild.id})`);

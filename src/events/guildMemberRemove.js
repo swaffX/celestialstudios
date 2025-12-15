@@ -4,6 +4,7 @@ const User = require('../models/User');
 const config = require('../config');
 const embedBuilder = require('../utils/embedBuilder');
 const logger = require('../utils/logger');
+const { triggerStatsUpdate } = require('../systems/serverStatsSystem');
 
 module.exports = {
     name: Events.GuildMemberRemove,
@@ -17,6 +18,9 @@ module.exports = {
             if (config.invites.fakeInvitePenalty) {
                 await this.handleFakeInvite(member);
             }
+
+            // === SERVER STATS UPDATE ===
+            triggerStatsUpdate(member.guild);
 
             // Check if farewell feature is enabled
             if (!guildSettings.features.farewell) return;

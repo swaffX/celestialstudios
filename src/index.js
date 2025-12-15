@@ -6,6 +6,11 @@ const commandHandler = require('./handlers/commandHandler');
 const eventHandler = require('./handlers/eventHandler');
 const GiveawayHandler = require('./handlers/giveawayHandler');
 
+// Import Systems
+const { initBoosterSystem } = require('./systems/boosterSystem');
+const { initServerStats } = require('./systems/serverStatsSystem');
+const { initStatsEmbed } = require('./systems/statsEmbedSystem');
+
 // Create Discord client with all necessary intents
 const client = new Client({
     intents: [
@@ -15,7 +20,8 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.DirectMessages
+        GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.GuildPresences // For boost detection
     ],
     partials: [
         Partials.Message,
@@ -33,6 +39,13 @@ client.voiceStates = new Map(); // Track voice channel join times
 
 // Initialize giveaway handler
 client.giveawayHandler = new GiveawayHandler(client);
+
+// Store system initializers
+client.initSystems = async () => {
+    await initBoosterSystem(client);
+    await initServerStats(client);
+    await initStatsEmbed(client);
+};
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
