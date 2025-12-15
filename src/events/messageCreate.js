@@ -1,0 +1,105 @@
+const { Events } = require('discord.js');
+const User = require('../models/User');
+const Guild = require('../models/Guild');
+const config = require('../config');
+const levelCalculator = require('../utils/levelCalculator');
+const achievementChecker = require('../utils/achievementChecker');
+const embedBuilder = require('../utils/embedBuilder');
+const logger = require('../utils/logger');
+
+module.exports = {
+    name: Events.MessageCreate,
+    once: false,
+
+    async execute(message, client) {
+        // Ignore bots and DMs
+        if (message.author.bot || !message.guild) return;
+
+        try {
+            // Get guild settings
+            const guildSettings = await Guild.findOrCreate(message.guild.id);
+
+            // Check if leveling is enabled
+            if (!guildSettings.features.leveling) return;
+
+            // Get or create user
+            const userData = await User.findOrCreate(message.author.id, message.guild.id);
+
+            // Increment message count
+            userData.totalMessages++;
+            userData.lastSeen = new Date();
+
+            // Check XP cooldown
+            if (!levelCalculator.canEarnXP(userData.lastMessageTime)) {
+                await userData.save();
+                return;
+            }
+
+            // Calculate random XP
+            const xpAmount = levelCalculator.getRandomXP();
+
+            // Add XP with daily limit check
+            const result = await userData.addXp(xpAmount, config);
+
+            // Update last message time
+            userData.lastMessageTime = new Date();
+            await userData.save();
+
+            // Check level up
+            if (result.leveledUp) {
+                // Send level up notification
+                if (guildSettings.levelChannel) {
+                    try {
+                        const channel = await client.channels.fetch(guildSettings.levelChannel);
+                        if (channel) {
+                            const embed = embedBuilder.levelUp(message.author, result.newLevel);
+                            await channel.send({
+                                content: `${message.author}`,
+                                embeds: [embed]
+                            });
+                        }
+                    } catch (error) {
+                        logger.error('Failed to send level up notification:', error);
+                    }
+                }
+
+                // Check for level roles
+                const levelRole = guildSettings.getLevelRole(result.newLevel);
+                if (levelRole) {
+                    try {
+                        const role = message.guild.roles.cache.get(levelRole.roleId);
+                        if (role && !message.member.roles.cache.has(role.id)) {
+                            await message.member.roles.add(role);
+                            logger.info(`Assigned level role ${role.name} to ${message.author.tag}`);
+                        }
+                    } catch (error) {
+                        logger.error('Failed to assign level role:', error);
+                    }
+                }
+
+                logger.info(`${message.author.tag} leveled up to ${result.newLevel}`);
+            }
+
+            // Check achievements
+            const unlockedAchievements = await achievementChecker.check(userData, client, message.member);
+
+            // Notify about unlocked achievements
+            for (const achievement of unlockedAchievements) {
+                if (guildSettings.levelChannel) {
+                    try {
+                        const channel = await client.channels.fetch(guildSettings.levelChannel);
+                        if (channel) {
+                            const embed = embedBuilder.achievement(message.author, achievement);
+                            await channel.send({ embeds: [embed] });
+                        }
+                    } catch (error) {
+                        logger.error('Failed to send achievement notification:', error);
+                    }
+                }
+            }
+
+        } catch (error) {
+            logger.error('Error in messageCreate event:', error);
+        }
+    }
+};
