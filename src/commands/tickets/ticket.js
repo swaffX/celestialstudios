@@ -24,6 +24,22 @@ module.exports = {
                     option.setName('user')
                         .setDescription('User to add')
                         .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('support-role')
+                .setDescription('Manage ticket support roles')
+                .addStringOption(option =>
+                    option.setName('action')
+                        .setDescription('Action to perform')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'Add', value: 'add' },
+                            { name: 'Remove', value: 'remove' }
+                        ))
+                .addRoleOption(option =>
+                    option.setName('role')
+                        .setDescription('Role to add/remove')
+                        .setRequired(true)))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
 
     async execute(interaction, client) {
@@ -39,6 +55,58 @@ module.exports = {
             case 'add':
                 await this.handleAdd(interaction, client);
                 break;
+            case 'support-role':
+                await this.handleSupportRole(interaction, client);
+                break;
+        }
+    },
+
+    // ... (keep handleSetup, handleCreate, handleClose, handleCloseConfirm logic same)
+
+    async handleSupportRole(interaction, client) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+        const action = interaction.options.getString('action');
+        const role = interaction.options.getRole('role');
+        const guildSettings = await Guild.findOrCreate(interaction.guild.id);
+
+        if (!guildSettings.ticketSupportRoles) {
+            guildSettings.ticketSupportRoles = [];
+        }
+
+        try {
+            if (action === 'add') {
+                if (guildSettings.ticketSupportRoles.includes(role.id)) {
+                    return interaction.editReply({
+                        embeds: [embedBuilder.error('Error', 'Role is already a support role!')]
+                    });
+                }
+
+                guildSettings.ticketSupportRoles.push(role.id);
+                await guildSettings.save();
+
+                await interaction.editReply({
+                    embeds: [embedBuilder.success('Role Added', `${role} is now a ticket support role.`)]
+                });
+            } else if (action === 'remove') {
+                if (!guildSettings.ticketSupportRoles.includes(role.id)) {
+                    return interaction.editReply({
+                        embeds: [embedBuilder.error('Error', 'Role is not a support role!')]
+                    });
+                }
+
+                guildSettings.ticketSupportRoles = guildSettings.ticketSupportRoles.filter(r => r !== role.id);
+                await guildSettings.save();
+
+                await interaction.editReply({
+                    embeds: [embedBuilder.success('Role Removed', `${role} removed from ticket support roles.`)]
+                });
+            }
+        } catch (error) {
+            logger.error('Ticket support role error:', error);
+            await interaction.editReply({
+                embeds: [embedBuilder.error('Error', 'Failed to update support role!')]
+            });
         }
     },
 
