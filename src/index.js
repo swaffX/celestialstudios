@@ -31,7 +31,8 @@ const client = new Client({
         Partials.GuildMember
     ],
     rest: {
-        timeout: 60_000, // 60s request timeout
+        timeout: 60000, // 60s request timeout
+        retries: 5,
     }
 });
 

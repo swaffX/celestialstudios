@@ -134,6 +134,16 @@ const guildSchema = new mongoose.Schema({
         }]
     },
 
+    // Marketplace / Community Hub
+    marketplace: {
+        category: { type: String, default: null },
+        hiring: { type: String, default: null },
+        forHire: { type: String, default: null },
+        portfolios: { type: String, default: null },
+        selling: { type: String, default: null },
+        discussion: { type: String, default: null } // Optional general chat
+    },
+
     // Stats
     totalGiveaways: { type: Number, default: 0 },
     totalTickets: { type: Number, default: 0 }

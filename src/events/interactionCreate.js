@@ -210,6 +210,14 @@ module.exports = {
                     return;
                 }
 
+                // Marketplace Buttons
+                if (interaction.customId.startsWith('marketplace_create_')) {
+                    const { showModal } = require('../handlers/marketplaceHandler');
+                    const type = interaction.customId.replace('marketplace_create_', '');
+                    await showModal(interaction, type);
+                    return;
+                }
+
             } catch (error) {
                 logger.error('Error handling button interaction:', error);
 
