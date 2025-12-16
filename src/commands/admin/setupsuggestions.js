@@ -141,7 +141,7 @@ module.exports = {
                     `╰───────────────────────────╯\n\n` +
                     `Click the button below to submit your suggestion!`
                 )
-                .setImage('https://i.imgur.com/wSTFkRM.png')
+
                 .setFooter({ text: 'Your voice matters! 🌟', iconURL: guild.iconURL({ dynamic: true }) })
                 .setTimestamp();
 

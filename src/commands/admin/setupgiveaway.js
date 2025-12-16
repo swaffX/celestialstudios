@@ -72,7 +72,7 @@ module.exports = {
                     `• Winner is announced automatically!\n` +
                     `╰───────────────────────────╯`
                 )
-                .setImage('https://i.imgur.com/wSTFkRM.png')
+
                 .setFooter({ text: 'Good luck! 🍀', iconURL: guild.iconURL({ dynamic: true }) })
                 .setTimestamp();
 
