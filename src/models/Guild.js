@@ -77,6 +77,18 @@ const guildSchema = new mongoose.Schema({
         period: { type: String, default: 'weekly' }
     },
 
+    // Reaction Roles (Button-based)
+    reactionRoles: {
+        messageId: { type: String, default: null },
+        channelId: { type: String, default: null },
+        roles: {
+            announcements: { type: String, default: null },
+            updates: { type: String, default: null },
+            giveaways: { type: String, default: null },
+            events: { type: String, default: null }
+        }
+    },
+
     // Stats
     totalGiveaways: { type: Number, default: 0 },
     totalTickets: { type: Number, default: 0 }
