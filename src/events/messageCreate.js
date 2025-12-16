@@ -23,18 +23,34 @@ module.exports = {
             if (!guildSettings.levelSystem?.enabled && !guildSettings.features?.leveling) return;
 
             // Get or create user
-            const userData = await User.findOrCreate(message.author.id, message.guild.id);
+            let userData = await User.findOrCreate(message.author.id, message.guild.id);
 
-            // Migrate old invite schema if needed
-            if (typeof userData.invites === 'number' || !userData.invites) {
+            // Migrate old invite schema if needed (use raw MongoDB to avoid type conflict)
+            if (typeof userData.invites === 'number' || !userData.invites || !userData.invites.regular === undefined) {
                 const oldInvites = typeof userData.invites === 'number' ? userData.invites : 0;
-                userData.invites = {
-                    regular: oldInvites,
-                    bonus: 0,
-                    fake: 0,
-                    left: 0,
-                    total: oldInvites
-                };
+                // Use raw updateOne with $unset then $set to change field type
+                await User.updateOne(
+                    { odasi: message.author.id, odaId: message.guild.id },
+                    {
+                        $unset: { invites: 1 }
+                    }
+                );
+                await User.updateOne(
+                    { odasi: message.author.id, odaId: message.guild.id },
+                    {
+                        $set: {
+                            invites: {
+                                regular: oldInvites,
+                                bonus: 0,
+                                fake: 0,
+                                left: 0,
+                                total: oldInvites
+                            }
+                        }
+                    }
+                );
+                // Re-fetch the user after migration
+                userData = await User.findOne({ odasi: message.author.id, odaId: message.guild.id });
             }
 
             // Increment message count
