@@ -7,7 +7,8 @@ module.exports = {
     once: false,
 
     async execute(message, client) {
-        if (!message.guild || message.author?.bot) return;
+        // Skip if no guild, partial message, or bot message
+        if (!message.guild || !message.author || message.author.bot) return;
 
         try {
             const guildSettings = await Guild.findOne({ guildId: message.guild.id });
@@ -16,11 +17,15 @@ module.exports = {
             const logChannel = message.guild.channels.cache.get(guildSettings.logs.channels.message);
             if (!logChannel) return;
 
+            const authorTag = message.author?.tag || 'Unknown User';
+            const authorAvatar = message.author?.displayAvatarURL() || null;
+            const authorId = message.author?.id || 'Unknown';
+
             const embed = new EmbedBuilder()
                 .setColor('#e74c3c')
-                .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
-                .setDescription(`**Message sent by ${message.author} deleted in ${message.channel}**\n${message.content || 'No content (Embed/Image)'}`)
-                .setFooter({ text: `Author: ${message.author.id} | Message ID: ${message.id}` })
+                .setAuthor({ name: authorTag, iconURL: authorAvatar })
+                .setDescription(`**Message sent by ${message.author || 'Unknown'} deleted in ${message.channel}**\n${message.content || 'No content (Embed/Image)'}`)
+                .setFooter({ text: `Author: ${authorId} | Message ID: ${message.id}` })
                 .setTimestamp();
 
             if (message.attachments.size > 0) {

@@ -142,6 +142,18 @@ module.exports = {
             if (usedInvite) {
                 inviter = usedInvite.inviter;
 
+                // Migrate old invite schema if needed
+                if (typeof userData.invites === 'number' || !userData.invites) {
+                    const oldInvites = typeof userData.invites === 'number' ? userData.invites : 0;
+                    userData.invites = {
+                        regular: oldInvites,
+                        bonus: 0,
+                        fake: 0,
+                        left: 0,
+                        total: oldInvites
+                    };
+                }
+
                 const now = Date.now();
                 const accountAge = now - member.user.createdTimestamp;
                 const isFake = accountAge < (1000 * 60 * 60 * 24 * 7); // 7 days
