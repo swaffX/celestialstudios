@@ -1,4 +1,4 @@
-const { Jimp } = require('jimp');
+const Jimp = require('jimp');
 const { AttachmentBuilder } = require('discord.js');
 
 /**
@@ -72,15 +72,17 @@ function drawRoundedProgressBar(image, x, y, w, h, progress) {
     }
 
     // Fill
-    const fillW = Math.max(h, Math.floor(w * progress));
-    for (let py = y + 2; py < y + h - 2; py++) {
-        for (let px = x + 2; px < x + 2 + fillW - 4; px++) {
-            if (isInsideRoundedRect(px, py, x + 2, y + 2, fillW - 4, h - 4, (h - 4) / 2)) {
-                const ratio = (px - x) / w;
-                const r = Math.round(255 - ratio * 30);
-                const g = Math.round(180 + ratio * 40);
-                const b = Math.round(50 + ratio * 80);
-                image.setPixelColor(Jimp.rgbaToInt(r, g, b, 255), px, py);
+    if (progress > 0) {
+        const fillW = Math.max(h, Math.floor(w * progress));
+        for (let py = y + 2; py < y + h - 2; py++) {
+            for (let px = x + 2; px < x + 2 + fillW - 4; px++) {
+                if (isInsideRoundedRect(px, py, x + 2, y + 2, fillW - 4, h - 4, (h - 4) / 2)) {
+                    const ratio = (px - x) / w;
+                    const r = Math.round(255 - ratio * 30);
+                    const g = Math.round(180 + ratio * 40);
+                    const b = Math.round(50 + ratio * 80);
+                    image.setPixelColor(Jimp.rgbaToInt(r, g, b, 255), px, py);
+                }
             }
         }
     }
@@ -112,7 +114,7 @@ async function createAchievementCard(user, achievements, stats) {
 
         const unlocked = achievements.filter(a => a.unlocked).length;
         const total = achievements.length;
-        const percentage = Math.round((unlocked / total) * 100);
+        const percentage = total > 0 ? Math.round((unlocked / total) * 100) : 0;
 
         // Header panel
         drawRoundedPanel(image, 15, 10, 470, 70, 12, 0x5B6EAEFF, 40, 45, 80, 150);
@@ -130,8 +132,8 @@ async function createAchievementCard(user, achievements, stats) {
         }
 
         // Username and stats
-        const username = user.displayName || user.username;
-        image.print(fontMedium, 85, 18, username.substring(0, 15));
+        const username = (user.displayName || user.username || 'User').substring(0, 15);
+        image.print(fontMedium, 85, 18, username);
         image.print(fontSmall, 85, 52, `Unlocked (${unlocked}/${total})`);
         image.print(fontSmall, 420, 35, `${percentage}%`);
 
@@ -143,31 +145,19 @@ async function createAchievementCard(user, achievements, stats) {
         const inProgress = achievements.filter(a => !a.unlocked).slice(0, 5);
         let itemY = 125;
 
-        // Category icons (text-based since Jimp doesn't support emoji)
-        const categoryIcons = {
-            'messages': '*',
-            'level': '>',
-            'voiceTime': '~',
-            'streak': '#',
-            'giveawaysWon': '+',
-            'badges': '@',
-            'invites': '>'
-        };
-
         for (const ach of inProgress) {
-            const progress = Math.min((ach.current || 0) / (ach.required || 1), 1);
+            const current = ach.current || 0;
+            const required = ach.required || 1;
+            const progress = Math.min(current / required, 1);
 
-            // Achievement name (strip emoji, use category icon)
-            const displayName = ach.name.replace(/[^\w\s']/g, '').trim().substring(0, 18);
-            const icon = categoryIcons[ach.requirement?.type] || '*';
-            image.print(fontSmall, 25, itemY, `${icon} ${displayName}`);
+            // Achievement name (strip emoji characters)
+            const displayName = (ach.name || 'Achievement').replace(/[^\w\s']/g, '').trim().substring(0, 18);
+            image.print(fontSmall, 25, itemY, `* ${displayName}`);
 
             // Progress bar
             drawRoundedProgressBar(image, 25, itemY + 22, 320, 14, progress);
 
             // Progress text
-            const current = ach.current || 0;
-            const required = ach.required || 1;
             const progressText = `${Math.round(progress * 100)}% (${current}/${required})`;
             image.print(fontSmall, 355, itemY + 18, progressText);
 
