@@ -189,22 +189,57 @@ module.exports = {
 
     // ... (rest of the code remains similar, mostly copy-paste but ensuring English)
     async handleCreate(interaction, client) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
         try {
             const guildSettings = await Guild.findOrCreate(interaction.guild.id);
 
             const existingTicket = await Ticket.findOne({
                 odaId: interaction.guild.id,
-                odasi: interaction.user.id,
+                userId: interaction.user.id,
                 status: 'open'
             });
 
             if (existingTicket) {
-                return interaction.editReply({
-                    content: `❌ You already have an open ticket: <#${existingTicket.channelId}>`
+                return interaction.reply({
+                    content: `❌ You already have an open ticket: <#${existingTicket.channelId}>`,
+                    flags: MessageFlags.Ephemeral
                 });
             }
+
+            // Show Modal
+            const { ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+
+            const modal = new ModalBuilder()
+                .setCustomId('ticket_modal')
+                .setTitle('Create Ticket');
+
+            const reasonInput = new TextInputBuilder()
+                .setCustomId('ticket_reason')
+                .setLabel('Reason for ticket')
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('Please describe your issue...')
+                .setRequired(true)
+                .setMinLength(10)
+                .setMaxLength(1000);
+
+            const firstActionRow = new ActionRowBuilder().addComponents(reasonInput);
+            modal.addComponents(firstActionRow);
+
+            await interaction.showModal(modal);
+
+        } catch (error) {
+            logger.error('Ticket modal error:', error);
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({ content: '❌ Failed to open ticket modal!', flags: MessageFlags.Ephemeral });
+            }
+        }
+    },
+
+    async handleModalSubmit(interaction, client) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+        try {
+            const reason = interaction.fields.getTextInputValue('ticket_reason');
+            const guildSettings = await Guild.findOrCreate(interaction.guild.id);
 
             guildSettings.ticketCounter++;
             await guildSettings.save();
@@ -228,12 +263,15 @@ module.exports = {
                 { id: client.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageChannels'] }
             ];
 
-            if (guildSettings.ticketSupportRoles) {
+            // Add support roles to permissions and mention string
+            let supportRoleMentions = '';
+            if (guildSettings.ticketSupportRoles && guildSettings.ticketSupportRoles.length > 0) {
                 for (const roleId of guildSettings.ticketSupportRoles) {
                     permissionOverwrites.push({
                         id: roleId,
                         allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
                     });
+                    supportRoleMentions += `<@&${roleId}> `;
                 }
             }
 
@@ -247,12 +285,16 @@ module.exports = {
             await Ticket.create({
                 odaId: interaction.guild.id,
                 channelId: ticketChannel.id,
-                userId: interaction.user.id, // Fixed: odasi -> userId
+                userId: interaction.user.id,
                 userTag: interaction.user.tag,
-                ticketNumber
+                ticketNumber,
+                status: 'open',
+                messages: [{ author: interaction.user.tag, content: `Reason: ${reason}`, timestamp: new Date() }]
             });
 
-            const embed = embedBuilder.ticket(interaction.user, ticketNumber);
+            const embed = embedBuilder.ticket(interaction.user, ticketNumber)
+                .addFields({ name: '📝 Reason', value: reason, inline: false });
+
             const row = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId('ticket_close')
@@ -262,7 +304,7 @@ module.exports = {
             );
 
             await ticketChannel.send({
-                content: `${interaction.user}`,
+                content: `${interaction.user} ${supportRoleMentions}`,
                 embeds: [embed],
                 components: [row]
             });

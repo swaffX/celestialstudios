@@ -333,7 +333,12 @@ module.exports = {
         // Handle modals
         if (interaction.isModalSubmit()) {
             try {
-                // Handle modal submissions here
+                if (interaction.customId === 'ticket_modal') {
+                    const ticketCommand = client.commands.get('ticket');
+                    if (ticketCommand && ticketCommand.handleModalSubmit) {
+                        await ticketCommand.handleModalSubmit(interaction, client);
+                    }
+                }
             } catch (error) {
                 logger.error('Error handling modal:', error);
             }
