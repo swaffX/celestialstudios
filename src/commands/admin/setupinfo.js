@@ -4,7 +4,7 @@ const embedBuilder = require('../../utils/embedBuilder');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setupinfo')
-        .setDescription('Create info center with category dropdown')
+        .setDescription('Create info center with category dropdown and auto role detection')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .addStringOption(option =>
             option.setName('banner_url')
@@ -26,7 +26,7 @@ module.exports = {
                     `💡 Don't forget to read the rules!`
                 )
                 .setFooter({
-                    text: `${interaction.guild.name} • ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`,
+                    text: `${interaction.guild.name} • ${new Date().toLocaleDateString('en-US')} ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
                     iconURL: interaction.guild.iconURL({ dynamic: true })
                 });
 
@@ -49,12 +49,6 @@ module.exports = {
                         description: 'View important links',
                         value: 'info_links',
                         emoji: '🔗'
-                    },
-                    {
-                        label: 'CC Requirements',
-                        description: 'Content Creator requirements',
-                        value: 'info_cc',
-                        emoji: '📋'
                     }
                 ]);
 

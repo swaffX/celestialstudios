@@ -1,42 +1,28 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const config = require('../../config');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('help')
-        .setDescription('View all bot commands')
-        .addStringOption(option =>
-            option.setName('category')
-                .setDescription('Command category')
-                .setRequired(false)
-                .addChoices(
-                    { name: 'Leveling', value: 'leveling' },
-                    { name: 'Giveaways', value: 'giveaway' },
-                    { name: 'Achievements', value: 'achievements' },
-                    { name: 'Invites', value: 'invites' },
-                    { name: 'Moderation', value: 'moderation' },
-                    { name: 'Settings', value: 'settings' },
-                    { name: 'Tickets', value: 'tickets' },
-                    { name: 'Utility', value: 'utility' }
-                )),
+        .setDescription('View all bot commands'),
 
     async execute(interaction) {
-        const category = interaction.options.getString('category');
-
         const categories = {
             leveling: {
                 emoji: '📊',
                 name: 'Leveling',
+                color: '#3498db',
                 commands: [
                     { name: '/rank', desc: 'View your level and XP' },
                     { name: '/leaderboard', desc: 'View server leaderboard' },
-                    { name: '/setlevelchannel', desc: 'Set level-up channel (Admin)' },
-                    { name: '/addlevelrole', desc: 'Add level role (Admin)' }
+                    { name: '/setlevelchannel', desc: 'Set level-up channel' },
+                    { name: '/addlevelrole', desc: 'Add level role reward' }
                 ]
             },
             giveaway: {
                 emoji: '🎁',
                 name: 'Giveaways',
+                color: '#e74c3c',
                 commands: [
                     { name: '/giveaway create', desc: 'Create a giveaway' },
                     { name: '/giveaway end', desc: 'End a giveaway early' },
@@ -44,49 +30,48 @@ module.exports = {
                     { name: '/giveaway list', desc: 'List active giveaways' }
                 ]
             },
-            achievements: {
-                emoji: '🏆',
-                name: 'Achievements',
-                commands: [
-                    { name: '/achievements', desc: 'View your achievements' },
-                    { name: '/badges', desc: 'View your badges' }
-                ]
-            },
             invites: {
                 emoji: '📨',
                 name: 'Invites',
+                color: '#9b59b6',
                 commands: [
                     { name: '/invites', desc: 'View invite statistics' },
                     { name: '/inviteleaderboard', desc: 'View invite leaderboard' },
-                    { name: '/addinvites', desc: 'Add bonus invites (Admin)' }
+                    { name: '/addinvites', desc: 'Add bonus invites' }
                 ]
             },
             moderation: {
                 emoji: '🛡️',
                 name: 'Moderation',
+                color: '#e67e22',
                 commands: [
                     { name: '/ban', desc: 'Ban a user' },
                     { name: '/kick', desc: 'Kick a user' },
-                    { name: '/mute', desc: 'Mute (timeout) a user' },
+                    { name: '/mute', desc: 'Timeout a user' },
                     { name: '/warn', desc: 'Warn a user' },
                     { name: '/warnings', desc: 'View warnings' },
-                    { name: '/clearwarnings', desc: 'Clear warnings (Admin)' }
+                    { name: '/clearwarnings', desc: 'Clear warnings' }
                 ]
             },
-            settings: {
+            setup: {
                 emoji: '⚙️',
-                name: 'Settings',
+                name: 'Setup',
+                color: '#2ecc71',
                 commands: [
-                    { name: '/settings', desc: 'View server settings' },
                     { name: '/setwelcome', desc: 'Set welcome channel' },
                     { name: '/setfarewell', desc: 'Set farewell channel' },
                     { name: '/setautorole', desc: 'Set auto role' },
-                    { name: '/setmodlog', desc: 'Set mod log channel' }
+                    { name: '/setuplogs', desc: 'Setup log channels' },
+                    { name: '/setupinfo', desc: 'Create info center' },
+                    { name: '/setuprules', desc: 'Create rules embed' },
+                    { name: '/setuplinks', desc: 'Create links embed' },
+                    { name: '/setuproles', desc: 'Create role buttons' }
                 ]
             },
             tickets: {
                 emoji: '🎫',
                 name: 'Tickets',
+                color: '#1abc9c',
                 commands: [
                     { name: '/ticket setup', desc: 'Setup ticket system' },
                     { name: '/ticket close', desc: 'Close a ticket' },
@@ -96,46 +81,163 @@ module.exports = {
             utility: {
                 emoji: '🔧',
                 name: 'Utility',
+                color: '#95a5a6',
                 commands: [
                     { name: '/help', desc: 'View all commands' },
                     { name: '/ping', desc: 'Check bot latency' },
-                    { name: '/info', desc: 'Server information' },
+                    { name: '/serverinfo', desc: 'Server information' },
                     { name: '/userinfo', desc: 'User information' },
-                    { name: '/avatar', desc: 'View avatar' },
-                    { name: '/stats', desc: 'Bot statistics' }
+                    { name: '/avatar', desc: 'View avatar' }
                 ]
             }
         };
 
-        if (category && categories[category]) {
-            const cat = categories[category];
-            const commandList = cat.commands.map(c => `\`${c.name}\` - ${c.desc}`).join('\n');
-
-            const embed = new EmbedBuilder()
-                .setColor(config.embedColor)
-                .setTitle(`${cat.emoji} ${cat.name} Commands`)
-                .setDescription(commandList)
-                .setTimestamp();
-
-            return interaction.reply({ embeds: [embed] });
-        }
-
-        // Show all categories
-        const embed = new EmbedBuilder()
-            .setColor(config.embedColor)
-            .setTitle('📚 Celestial Studios Bot - Commands')
-            .setDescription('Use `/help <category>` to see commands in a specific category.')
-            .setThumbnail(interaction.client.user.displayAvatarURL())
+        // Create main embed
+        const mainEmbed = new EmbedBuilder()
+            .setColor('#5865F2')
+            .setAuthor({
+                name: interaction.client.user.username,
+                iconURL: interaction.client.user.displayAvatarURL()
+            })
+            .setTitle('📚 Command Center')
+            .setDescription(
+                `Hello **${interaction.user.username}**! 👋\n\n` +
+                `Select a category from the dropdown below to view available commands.\n\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+            )
+            .setThumbnail(interaction.client.user.displayAvatarURL({ size: 256 }))
+            .addFields(
+                Object.entries(categories).map(([key, cat]) => ({
+                    name: `${cat.emoji} ${cat.name}`,
+                    value: `\`${cat.commands.length}\` commands`,
+                    inline: true
+                }))
+            )
+            .setFooter({
+                text: `Requested by ${interaction.user.tag} • Total: ${Object.values(categories).reduce((sum, cat) => sum + cat.commands.length, 0)} commands`,
+                iconURL: interaction.user.displayAvatarURL()
+            })
             .setTimestamp();
 
-        for (const [key, cat] of Object.entries(categories)) {
-            embed.addFields({
-                name: `${cat.emoji} ${cat.name}`,
-                value: `\`${cat.commands.length}\` commands`,
-                inline: true
-            });
-        }
+        // Create dropdown menu
+        const selectMenu = new StringSelectMenuBuilder()
+            .setCustomId('help_select')
+            .setPlaceholder('🔍 Select a category...')
+            .addOptions(
+                Object.entries(categories).map(([key, cat]) => ({
+                    label: cat.name,
+                    description: `View ${cat.commands.length} ${cat.name.toLowerCase()} commands`,
+                    value: `help_${key}`,
+                    emoji: cat.emoji
+                }))
+            );
 
-        await interaction.reply({ embeds: [embed] });
+        const row = new ActionRowBuilder().addComponents(selectMenu);
+
+        // Create support button row
+        const buttonRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('help_home')
+                .setLabel('Home')
+                .setEmoji('🏠')
+                .setStyle(ButtonStyle.Primary),
+            new ButtonBuilder()
+                .setLabel('Support Server')
+                .setEmoji('💬')
+                .setStyle(ButtonStyle.Link)
+                .setURL('https://discord.gg/celestialstudios')
+        );
+
+        await interaction.reply({
+            embeds: [mainEmbed],
+            components: [row, buttonRow],
+            ephemeral: false
+        });
+    }
+};
+
+// Export categories for use in interactionCreate
+module.exports.categories = {
+    leveling: {
+        emoji: '📊',
+        name: 'Leveling',
+        color: '#3498db',
+        commands: [
+            { name: '/rank', desc: 'View your level and XP' },
+            { name: '/leaderboard', desc: 'View server leaderboard' },
+            { name: '/setlevelchannel', desc: 'Set level-up channel' },
+            { name: '/addlevelrole', desc: 'Add level role reward' }
+        ]
+    },
+    giveaway: {
+        emoji: '🎁',
+        name: 'Giveaways',
+        color: '#e74c3c',
+        commands: [
+            { name: '/giveaway create', desc: 'Create a giveaway' },
+            { name: '/giveaway end', desc: 'End a giveaway early' },
+            { name: '/giveaway reroll', desc: 'Reroll winners' },
+            { name: '/giveaway list', desc: 'List active giveaways' }
+        ]
+    },
+    invites: {
+        emoji: '📨',
+        name: 'Invites',
+        color: '#9b59b6',
+        commands: [
+            { name: '/invites', desc: 'View invite statistics' },
+            { name: '/inviteleaderboard', desc: 'View invite leaderboard' },
+            { name: '/addinvites', desc: 'Add bonus invites' }
+        ]
+    },
+    moderation: {
+        emoji: '🛡️',
+        name: 'Moderation',
+        color: '#e67e22',
+        commands: [
+            { name: '/ban', desc: 'Ban a user' },
+            { name: '/kick', desc: 'Kick a user' },
+            { name: '/mute', desc: 'Timeout a user' },
+            { name: '/warn', desc: 'Warn a user' },
+            { name: '/warnings', desc: 'View warnings' },
+            { name: '/clearwarnings', desc: 'Clear warnings' }
+        ]
+    },
+    setup: {
+        emoji: '⚙️',
+        name: 'Setup',
+        color: '#2ecc71',
+        commands: [
+            { name: '/setwelcome', desc: 'Set welcome channel' },
+            { name: '/setfarewell', desc: 'Set farewell channel' },
+            { name: '/setautorole', desc: 'Set auto role' },
+            { name: '/setuplogs', desc: 'Setup log channels' },
+            { name: '/setupinfo', desc: 'Create info center' },
+            { name: '/setuprules', desc: 'Create rules embed' },
+            { name: '/setuplinks', desc: 'Create links embed' },
+            { name: '/setuproles', desc: 'Create role buttons' }
+        ]
+    },
+    tickets: {
+        emoji: '🎫',
+        name: 'Tickets',
+        color: '#1abc9c',
+        commands: [
+            { name: '/ticket setup', desc: 'Setup ticket system' },
+            { name: '/ticket close', desc: 'Close a ticket' },
+            { name: '/ticket add', desc: 'Add user to ticket' }
+        ]
+    },
+    utility: {
+        emoji: '🔧',
+        name: 'Utility',
+        color: '#95a5a6',
+        commands: [
+            { name: '/help', desc: 'View all commands' },
+            { name: '/ping', desc: 'Check bot latency' },
+            { name: '/serverinfo', desc: 'Server information' },
+            { name: '/userinfo', desc: 'User information' },
+            { name: '/avatar', desc: 'View avatar' }
+        ]
     }
 };

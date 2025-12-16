@@ -3,6 +3,71 @@ const logger = require('../utils/logger');
 const embedBuilder = require('../utils/embedBuilder');
 const { handleStatsButton } = require('../systems/statsEmbedSystem');
 
+// Help categories (imported from help.js)
+const helpCategories = {
+    leveling: {
+        emoji: '📊', name: 'Leveling', color: '#3498db', commands: [
+            { name: '/rank', desc: 'View your level and XP' },
+            { name: '/leaderboard', desc: 'View server leaderboard' },
+            { name: '/setlevelchannel', desc: 'Set level-up channel' },
+            { name: '/addlevelrole', desc: 'Add level role reward' }
+        ]
+    },
+    giveaway: {
+        emoji: '🎁', name: 'Giveaways', color: '#e74c3c', commands: [
+            { name: '/giveaway create', desc: 'Create a giveaway' },
+            { name: '/giveaway end', desc: 'End a giveaway early' },
+            { name: '/giveaway reroll', desc: 'Reroll winners' },
+            { name: '/giveaway list', desc: 'List active giveaways' }
+        ]
+    },
+    invites: {
+        emoji: '📨', name: 'Invites', color: '#9b59b6', commands: [
+            { name: '/invites', desc: 'View invite statistics' },
+            { name: '/inviteleaderboard', desc: 'View invite leaderboard' },
+            { name: '/addinvites', desc: 'Add bonus invites' }
+        ]
+    },
+    moderation: {
+        emoji: '🛡️', name: 'Moderation', color: '#e67e22', commands: [
+            { name: '/ban', desc: 'Ban a user' },
+            { name: '/kick', desc: 'Kick a user' },
+            { name: '/mute', desc: 'Timeout a user' },
+            { name: '/warn', desc: 'Warn a user' },
+            { name: '/warnings', desc: 'View warnings' },
+            { name: '/clearwarnings', desc: 'Clear warnings' }
+        ]
+    },
+    setup: {
+        emoji: '⚙️', name: 'Setup', color: '#2ecc71', commands: [
+            { name: '/setwelcome', desc: 'Set welcome channel' },
+            { name: '/setfarewell', desc: 'Set farewell channel' },
+            { name: '/setautorole', desc: 'Set auto role' },
+            { name: '/setuplogs', desc: 'Setup log channels' },
+            { name: '/setupinfo', desc: 'Create info center' },
+            { name: '/setuprules', desc: 'Create rules embed' },
+            { name: '/setuplinks', desc: 'Create links embed' },
+            { name: '/setuproles', desc: 'Create role buttons' }
+        ]
+    },
+    tickets: {
+        emoji: '🎫', name: 'Tickets', color: '#1abc9c', commands: [
+            { name: '/ticket setup', desc: 'Setup ticket system' },
+            { name: '/ticket close', desc: 'Close a ticket' },
+            { name: '/ticket add', desc: 'Add user to ticket' }
+        ]
+    },
+    utility: {
+        emoji: '🔧', name: 'Utility', color: '#95a5a6', commands: [
+            { name: '/help', desc: 'View all commands' },
+            { name: '/ping', desc: 'Check bot latency' },
+            { name: '/serverinfo', desc: 'Server information' },
+            { name: '/userinfo', desc: 'User information' },
+            { name: '/avatar', desc: 'View avatar' }
+        ]
+    }
+};
+
 module.exports = {
     name: Events.InteractionCreate,
     once: false,
@@ -54,6 +119,38 @@ module.exports = {
                 // Stats embed period buttons
                 if (interaction.customId === 'stats_weekly' || interaction.customId === 'stats_monthly') {
                     await handleStatsButton(interaction);
+                    return;
+                }
+
+                // Help home button
+                if (interaction.customId === 'help_home') {
+                    const mainEmbed = new EmbedBuilder()
+                        .setColor('#5865F2')
+                        .setAuthor({
+                            name: interaction.client.user.username,
+                            iconURL: interaction.client.user.displayAvatarURL()
+                        })
+                        .setTitle('📚 Command Center')
+                        .setDescription(
+                            `Hello **${interaction.user.username}**! 👋\n\n` +
+                            `Select a category from the dropdown below to view available commands.\n\n` +
+                            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+                        )
+                        .setThumbnail(interaction.client.user.displayAvatarURL({ size: 256 }))
+                        .addFields(
+                            Object.entries(helpCategories).map(([key, cat]) => ({
+                                name: `${cat.emoji} ${cat.name}`,
+                                value: `\`${cat.commands.length}\` commands`,
+                                inline: true
+                            }))
+                        )
+                        .setFooter({
+                            text: `Requested by ${interaction.user.tag}`,
+                            iconURL: interaction.user.displayAvatarURL()
+                        })
+                        .setTimestamp();
+
+                    await interaction.update({ embeds: [mainEmbed] });
                     return;
                 }
 
@@ -124,12 +221,54 @@ module.exports = {
         // Handle select menus
         if (interaction.isStringSelectMenu()) {
             try {
+                // Help category dropdown
+                if (interaction.customId === 'help_select') {
+                    const value = interaction.values[0];
+                    const categoryKey = value.replace('help_', '');
+                    const cat = helpCategories[categoryKey];
+
+                    if (cat) {
+                        const commandList = cat.commands.map(c => `\`${c.name}\` - ${c.desc}`).join('\n');
+
+                        const embed = new EmbedBuilder()
+                            .setColor(cat.color)
+                            .setTitle(`${cat.emoji} ${cat.name} Commands`)
+                            .setDescription(commandList)
+                            .setFooter({
+                                text: `${cat.commands.length} commands • Click Home to go back`,
+                                iconURL: interaction.user.displayAvatarURL()
+                            })
+                            .setTimestamp();
+
+                        await interaction.update({ embeds: [embed] });
+                    }
+                    return;
+                }
+
                 // Info dropdown menu
                 if (interaction.customId === 'info_select') {
                     const value = interaction.values[0];
                     let embed;
 
                     if (value === 'info_roles') {
+                        // Auto detect roles
+                        const guild = interaction.guild;
+                        const roles = guild.roles.cache
+                            .filter(r => r.id !== guild.id && !r.managed)
+                            .sort((a, b) => b.position - a.position);
+
+                        // Categorize roles
+                        const adminRoles = roles.filter(r => r.permissions.has('Administrator'));
+                        const modRoles = roles.filter(r =>
+                            !r.permissions.has('Administrator') &&
+                            (r.permissions.has('ManageMessages') || r.permissions.has('KickMembers'))
+                        );
+                        const memberRoles = roles.filter(r =>
+                            !r.permissions.has('Administrator') &&
+                            !r.permissions.has('ManageMessages') &&
+                            !r.permissions.has('KickMembers')
+                        ).first(10);
+
                         embed = new EmbedBuilder()
                             .setColor('#5865F2')
                             .setTitle('🛡️ Server Roles')
@@ -137,33 +276,28 @@ module.exports = {
                             .addFields(
                                 {
                                     name: '👑 Management',
-                                    value: '@Project Leader\n@Owner',
+                                    value: adminRoles.size > 0
+                                        ? adminRoles.first(3).map(r => `<@&${r.id}>`).join('\n')
+                                        : 'None',
                                     inline: true
                                 },
                                 {
                                     name: '🛡️ Staff',
-                                    value: '@Moderator\n@Helper',
+                                    value: modRoles.size > 0
+                                        ? modRoles.first(3).map(r => `<@&${r.id}>`).join('\n')
+                                        : 'None',
                                     inline: true
                                 },
                                 {
                                     name: '👥 Members',
-                                    value: '@Supporter\n@Verified\n@Unverified',
+                                    value: memberRoles.size > 0
+                                        ? memberRoles.map(r => `<@&${r.id}>`).join('\n')
+                                        : 'None',
                                     inline: true
-                                },
-                                {
-                                    name: '⚔️ Level Roles',
-                                    value: [
-                                        '`Lv.100` Pirate King     `Lv.25` Demon Slayer',
-                                        '`Lv.75`  Hokage          `Lv.20` Supernova',
-                                        '`Lv.50`  Hashira         `Lv.15` Chunin',
-                                        '`Lv.40`  Espada          `Lv.10` Soul Reaper',
-                                        '`Lv.30`  Jonin           `Lv.5`  Genin'
-                                    ].join('\n'),
-                                    inline: false
                                 }
                             )
                             .setFooter({
-                                text: `${interaction.guild.name} • Level up by chatting and being in voice!`,
+                                text: `${interaction.guild.name} • ${roles.size} total roles`,
                                 iconURL: interaction.guild.iconURL({ dynamic: true })
                             })
                             .setTimestamp();
@@ -171,41 +305,14 @@ module.exports = {
                         embed = new EmbedBuilder()
                             .setColor('#FF0000')
                             .setTitle('🔗 Official Links')
-                            .setDescription(`Find us here:`)
-                            .addFields(
-                                {
-                                    name: '🎬 YouTube Channel',
-                                    value: 'Check out our content!',
-                                    inline: false
-                                },
-                                {
-                                    name: '📜 Terms of Service',
-                                    value: '[Discord TOS](https://discord.com/terms) • [YouTube TOS](https://www.youtube.com/t/terms)',
-                                    inline: false
-                                }
-                            )
+                            .setDescription(`Check the links channel for our official links!\n\nOr use \`/setuplinks\` to create a links embed.`)
+                            .addFields({
+                                name: '📜 Terms of Service',
+                                value: '[Discord TOS](https://discord.com/terms)',
+                                inline: false
+                            })
                             .setFooter({
                                 text: `${interaction.guild.name}`,
-                                iconURL: interaction.guild.iconURL({ dynamic: true })
-                            })
-                            .setTimestamp();
-                    } else if (value === 'info_cc') {
-                        embed = new EmbedBuilder()
-                            .setColor('#9B59B6')
-                            .setTitle('📋 Content Creator Requirements')
-                            .setDescription(
-                                `**Requirements:**\n` +
-                                `> 📊 Minimum 1,000 subscribers/followers\n` +
-                                `> 🎥 Regular content about our community\n` +
-                                `> 🎯 Active community presence\n\n` +
-                                `**Benefits:**\n` +
-                                `> 🏷️ Exclusive CC role\n` +
-                                `> 📢 Content promotion\n` +
-                                `> 🎁 Special perks\n\n` +
-                                `*Open a ticket to apply!*`
-                            )
-                            .setFooter({
-                                text: 'We love our content creators!',
                                 iconURL: interaction.guild.iconURL({ dynamic: true })
                             })
                             .setTimestamp();

@@ -89,6 +89,21 @@ const guildSchema = new mongoose.Schema({
         }
     },
 
+    // Logging System
+    logs: {
+        enabled: { type: Boolean, default: false },
+        categoryId: { type: String, default: null },
+        channels: {
+            message: { type: String, default: null },
+            member: { type: String, default: null },
+            mod: { type: String, default: null },
+            role: { type: String, default: null },
+            channel: { type: String, default: null },
+            voice: { type: String, default: null },
+            server: { type: String, default: null }
+        }
+    },
+
     // Stats
     totalGiveaways: { type: Number, default: 0 },
     totalTickets: { type: Number, default: 0 }

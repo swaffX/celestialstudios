@@ -1,134 +1,121 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
+const Guild = require('../../models/Guild');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setuplinks')
-        .setDescription('Create official links embed with YouTube and social links')
+        .setDescription('Create links embed with multiple custom links')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addStringOption(option =>
-            option.setName('youtube_url')
-                .setDescription('YouTube channel URL')
+            option.setName('link1_name')
+                .setDescription('First link name (e.g. YouTube)')
                 .setRequired(true))
         .addStringOption(option =>
-            option.setName('youtube_name')
-                .setDescription('YouTube channel name')
+            option.setName('link1_url')
+                .setDescription('First link URL')
                 .setRequired(true))
         .addStringOption(option =>
-            option.setName('tiktok_url')
-                .setDescription('TikTok URL (optional)')
+            option.setName('link1_emoji')
+                .setDescription('First link emoji (e.g. 🎬)')
                 .setRequired(false))
         .addStringOption(option =>
-            option.setName('twitter_url')
-                .setDescription('Twitter/X URL (optional)')
+            option.setName('link2_name')
+                .setDescription('Second link name')
                 .setRequired(false))
         .addStringOption(option =>
-            option.setName('instagram_url')
-                .setDescription('Instagram URL (optional)')
+            option.setName('link2_url')
+                .setDescription('Second link URL')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('link3_name')
+                .setDescription('Third link name')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('link3_url')
+                .setDescription('Third link URL')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('link4_name')
+                .setDescription('Fourth link name')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('link4_url')
+                .setDescription('Fourth link URL')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('link5_name')
+                .setDescription('Fifth link name')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('link5_url')
+                .setDescription('Fifth link URL')
                 .setRequired(false)),
 
     async execute(interaction) {
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            const youtubeUrl = interaction.options.getString('youtube_url');
-            const youtubeName = interaction.options.getString('youtube_name');
-            const tiktokUrl = interaction.options.getString('tiktok_url');
-            const twitterUrl = interaction.options.getString('twitter_url');
-            const instagramUrl = interaction.options.getString('instagram_url');
+            const links = [];
+
+            // Collect all provided links
+            for (let i = 1; i <= 5; i++) {
+                const name = interaction.options.getString(`link${i}_name`);
+                const url = interaction.options.getString(`link${i}_url`);
+                const emoji = i === 1 ? interaction.options.getString('link1_emoji') : null;
+
+                if (name && url) {
+                    links.push({ name, url, emoji: emoji || '🔗' });
+                }
+            }
+
+            if (links.length === 0) {
+                return interaction.editReply({
+                    embeds: [embedBuilder.error('Error', 'Please provide at least one link!')]
+                });
+            }
 
             const embed = new EmbedBuilder()
-                .setColor('#FF0000')
+                .setColor('#5865F2')
                 .setTitle('🔗 Official Links')
                 .setDescription(`Find us here:`)
-                .addFields({
-                    name: '🎬 YouTube Channel',
-                    value: `[${youtubeName}](${youtubeUrl})`,
-                    inline: false
-                });
+                .setFooter({
+                    text: `${interaction.guild.name}`,
+                    iconURL: interaction.guild.iconURL({ dynamic: true })
+                })
+                .setTimestamp();
 
-            // Add optional social links
-            if (tiktokUrl) {
+            // Add link fields
+            links.forEach(link => {
                 embed.addFields({
-                    name: '🎵 TikTok',
-                    value: `[Follow us](${tiktokUrl})`,
+                    name: `${link.emoji} ${link.name}`,
+                    value: `[Click here](${link.url})`,
                     inline: true
                 });
-            }
+            });
 
-            if (twitterUrl) {
-                embed.addFields({
-                    name: '🐦 Twitter/X',
-                    value: `[Follow us](${twitterUrl})`,
-                    inline: true
-                });
-            }
-
-            if (instagramUrl) {
-                embed.addFields({
-                    name: '📷 Instagram',
-                    value: `[Follow us](${instagramUrl})`,
-                    inline: true
-                });
-            }
-
-            // Terms of Service
+            // Add Terms of Service
             embed.addFields({
                 name: '📜 Terms of Service',
-                value: '[Discord TOS](https://discord.com/terms) • [YouTube TOS](https://www.youtube.com/t/terms)',
+                value: '[Discord TOS](https://discord.com/terms)',
                 inline: false
             });
 
-            embed.setFooter({
-                text: `${interaction.guild.name} • ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`,
-                iconURL: interaction.guild.iconURL({ dynamic: true })
-            });
-
-            // Create buttons
-            const buttons = [
+            // Create buttons (max 5)
+            const buttons = links.slice(0, 5).map(link =>
                 new ButtonBuilder()
-                    .setLabel('YouTube')
-                    .setEmoji('🎬')
+                    .setLabel(link.name)
+                    .setEmoji(link.emoji)
                     .setStyle(ButtonStyle.Link)
-                    .setURL(youtubeUrl)
-            ];
-
-            if (tiktokUrl) {
-                buttons.push(
-                    new ButtonBuilder()
-                        .setLabel('TikTok')
-                        .setEmoji('🎵')
-                        .setStyle(ButtonStyle.Link)
-                        .setURL(tiktokUrl)
-                );
-            }
-
-            if (twitterUrl) {
-                buttons.push(
-                    new ButtonBuilder()
-                        .setLabel('Twitter')
-                        .setEmoji('🐦')
-                        .setStyle(ButtonStyle.Link)
-                        .setURL(twitterUrl)
-                );
-            }
-
-            if (instagramUrl) {
-                buttons.push(
-                    new ButtonBuilder()
-                        .setLabel('Instagram')
-                        .setEmoji('📷')
-                        .setStyle(ButtonStyle.Link)
-                        .setURL(instagramUrl)
-                );
-            }
+                    .setURL(link.url)
+            );
 
             const row = new ActionRowBuilder().addComponents(buttons);
 
             await interaction.channel.send({ embeds: [embed], components: [row] });
 
             await interaction.editReply({
-                embeds: [embedBuilder.success('Success', 'Links embed created!')]
+                embeds: [embedBuilder.success('Success', `Links embed created with ${links.length} link(s)!`)]
             });
         } catch (error) {
             console.error('Links command error:', error);
