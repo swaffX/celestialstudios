@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 
-const LINKS_BANNER = 'https://lh3.googleusercontent.com/gg-dl/ABS2GSkcV3QR7FOSTWHz8DsxfUPXhuEs63A0skegJGzNkRxaP9w0X2LLfbncg7RqTzdmR5_uApgCeqAeZzirUKprbn3hat8DNWU_HVPx7B1j6ZevIG6sg9HYMxyQU6OsglsZY15OHphMG2yml8T2q8xnCXrztZ8fndgTzBjEtxYhIL7uHIEERg=s1024-rj';
+const LINKS_BANNER = 'https://cdn.discordapp.com/attachments/531892263652032522/1450306820047507597/Gemini_Generated_Image_2237wg2237wg2237.png?ex=69420efb&is=6940bd7b&hm=4da0d6542e9bd06e689fb75dc77c01cfa53e7090536c91f90f49ae1c984d0366&';
 
 module.exports = {
     data: new SlashCommandBuilder()
