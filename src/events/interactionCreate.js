@@ -1,9 +1,9 @@
-const { Events, EmbedBuilder } = require('discord.js');
+const { Events, EmbedBuilder, MessageFlags } = require('discord.js');
 const logger = require('../utils/logger');
 const embedBuilder = require('../utils/embedBuilder');
 const { handleStatsButton } = require('../systems/statsEmbedSystem');
 
-// Help categories (imported from help.js)
+// Help categories
 const helpCategories = {
     leveling: {
         emoji: '📊', name: 'Leveling', color: '#3498db', commands: [
@@ -42,12 +42,12 @@ const helpCategories = {
         emoji: '⚙️', name: 'Setup', color: '#2ecc71', commands: [
             { name: '/setwelcome', desc: 'Set welcome channel' },
             { name: '/setfarewell', desc: 'Set farewell channel' },
-            { name: '/setautorole', desc: 'Set auto role' },
             { name: '/setuplogs', desc: 'Setup log channels' },
             { name: '/setupinfo', desc: 'Create info center' },
             { name: '/setuprules', desc: 'Create rules embed' },
             { name: '/setuplinks', desc: 'Create links embed' },
-            { name: '/setuproles', desc: 'Create role buttons' }
+            { name: '/setuproles', desc: 'Create role buttons' },
+            { name: '/setupbooster', desc: 'Booster leaderboard' }
         ]
     },
     tickets: {
@@ -100,9 +100,9 @@ module.exports = {
                 );
 
                 if (interaction.replied || interaction.deferred) {
-                    await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+                    await interaction.followUp({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                 } else {
-                    await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
                 }
             }
         }
@@ -124,31 +124,35 @@ module.exports = {
 
                 // Help home button
                 if (interaction.customId === 'help_home') {
+                    const HELP_BANNER = 'https://cdn.discordapp.com/attachments/1447262708440236084/1450284176564818063/Gemini_Generated_Image_eyxkuceyxkuceyxk.png';
+
                     const mainEmbed = new EmbedBuilder()
                         .setColor('#5865F2')
                         .setAuthor({
-                            name: interaction.client.user.username,
+                            name: `${interaction.client.user.username} • Command Center`,
                             iconURL: interaction.client.user.displayAvatarURL()
                         })
-                        .setTitle('📚 Command Center')
                         .setDescription(
-                            `Hello **${interaction.user.username}**! 👋\n\n` +
-                            `Select a category from the dropdown below to view available commands.\n\n` +
-                            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+                            `> 👋 Hey **${interaction.user.username}**!\n` +
+                            `> \n` +
+                            `> Select a category below to explore commands.\n` +
+                            `> Each category contains useful features!\n\n` +
+                            `╭──────────────────────────╮`
                         )
-                        .setThumbnail(interaction.client.user.displayAvatarURL({ size: 256 }))
-                        .addFields(
-                            Object.entries(helpCategories).map(([key, cat]) => ({
-                                name: `${cat.emoji} ${cat.name}`,
-                                value: `\`${cat.commands.length}\` commands`,
-                                inline: true
-                            }))
-                        )
+                        .setImage(HELP_BANNER)
                         .setFooter({
-                            text: `Requested by ${interaction.user.tag}`,
+                            text: `📚 ${Object.values(helpCategories).reduce((sum, cat) => sum + cat.commands.length, 0)} Total Commands`,
                             iconURL: interaction.user.displayAvatarURL()
                         })
                         .setTimestamp();
+
+                    for (const [key, cat] of Object.entries(helpCategories)) {
+                        mainEmbed.addFields({
+                            name: `${cat.emoji} **${cat.name}**`,
+                            value: `\`\`\`${cat.commands.length} cmds\`\`\``,
+                            inline: true
+                        });
+                    }
 
                     await interaction.update({ embeds: [mainEmbed] });
                     return;
@@ -160,7 +164,7 @@ module.exports = {
                     const role = interaction.guild.roles.cache.get(roleId);
 
                     if (!role) {
-                        return interaction.reply({ content: '❌ Role not found!', ephemeral: true });
+                        return interaction.reply({ content: '❌ Role not found!', flags: MessageFlags.Ephemeral });
                     }
 
                     const member = interaction.member;
@@ -169,13 +173,13 @@ module.exports = {
                         await member.roles.remove(roleId);
                         await interaction.reply({
                             content: `✅ Removed **${role.name}** role!`,
-                            ephemeral: true
+                            flags: MessageFlags.Ephemeral
                         });
                     } else {
                         await member.roles.add(roleId);
                         await interaction.reply({
                             content: `✅ Added **${role.name}** role!`,
-                            ephemeral: true
+                            flags: MessageFlags.Ephemeral
                         });
                     }
                     return;
@@ -212,7 +216,7 @@ module.exports = {
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.reply({
                         content: '❌ An error occurred!',
-                        ephemeral: true
+                        flags: MessageFlags.Ephemeral
                     });
                 }
             }
@@ -228,14 +232,14 @@ module.exports = {
                     const cat = helpCategories[categoryKey];
 
                     if (cat) {
-                        const commandList = cat.commands.map(c => `\`${c.name}\` - ${c.desc}`).join('\n');
+                        const commandList = cat.commands.map(c => `> \`${c.name}\` — ${c.desc}`).join('\n');
 
                         const embed = new EmbedBuilder()
                             .setColor(cat.color)
                             .setTitle(`${cat.emoji} ${cat.name} Commands`)
-                            .setDescription(commandList)
+                            .setDescription(`${commandList}\n\n╰──────────────────────────╯`)
                             .setFooter({
-                                text: `${cat.commands.length} commands • Click Home to go back`,
+                                text: `📚 ${cat.commands.length} commands • Click Home to go back`,
                                 iconURL: interaction.user.displayAvatarURL()
                             })
                             .setTimestamp();
@@ -251,13 +255,11 @@ module.exports = {
                     let embed;
 
                     if (value === 'info_roles') {
-                        // Auto detect roles
                         const guild = interaction.guild;
                         const roles = guild.roles.cache
                             .filter(r => r.id !== guild.id && !r.managed)
                             .sort((a, b) => b.position - a.position);
 
-                        // Categorize roles
                         const adminRoles = roles.filter(r => r.permissions.has('Administrator'));
                         const modRoles = roles.filter(r =>
                             !r.permissions.has('Administrator') &&
@@ -272,27 +274,27 @@ module.exports = {
                         embed = new EmbedBuilder()
                             .setColor('#5865F2')
                             .setTitle('🛡️ Server Roles')
-                            .setDescription(`Here are the roles on our server:`)
+                            .setDescription(`> Here are the roles on our server:\n\n╭──────────────────────────╮`)
                             .addFields(
                                 {
                                     name: '👑 Management',
                                     value: adminRoles.size > 0
                                         ? adminRoles.first(3).map(r => `<@&${r.id}>`).join('\n')
-                                        : 'None',
+                                        : '`None`',
                                     inline: true
                                 },
                                 {
                                     name: '🛡️ Staff',
                                     value: modRoles.size > 0
                                         ? modRoles.first(3).map(r => `<@&${r.id}>`).join('\n')
-                                        : 'None',
+                                        : '`None`',
                                     inline: true
                                 },
                                 {
                                     name: '👥 Members',
                                     value: memberRoles.size > 0
                                         ? memberRoles.map(r => `<@&${r.id}>`).join('\n')
-                                        : 'None',
+                                        : '`None`',
                                     inline: true
                                 }
                             )
@@ -305,7 +307,7 @@ module.exports = {
                         embed = new EmbedBuilder()
                             .setColor('#FF0000')
                             .setTitle('🔗 Official Links')
-                            .setDescription(`Check the links channel for our official links!\n\nOr use \`/setuplinks\` to create a links embed.`)
+                            .setDescription(`> Check the links channel for our official links!\n\n> Use \`/setuplinks\` to create a links embed.`)
                             .addFields({
                                 name: '📜 Terms of Service',
                                 value: '[Discord TOS](https://discord.com/terms)',
@@ -319,7 +321,7 @@ module.exports = {
                     }
 
                     if (embed) {
-                        await interaction.reply({ embeds: [embed], ephemeral: true });
+                        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
                     }
                     return;
                 }

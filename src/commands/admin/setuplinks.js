@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 
 const LINKS_BANNER = 'https://lh3.googleusercontent.com/gg-dl/ABS2GSkcV3QR7FOSTWHz8DsxfUPXhuEs63A0skegJGzNkRxaP9w0X2LLfbncg7RqTzdmR5_uApgCeqAeZzirUKprbn3hat8DNWU_HVPx7B1j6ZevIG6sg9HYMxyQU6OsglsZY15OHphMG2yml8T2q8xnCXrztZ8fndgTzBjEtxYhIL7uHIEERg=s1024-rj';
@@ -54,7 +54,7 @@ module.exports = {
                 .setRequired(false)),
 
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             const links = [];

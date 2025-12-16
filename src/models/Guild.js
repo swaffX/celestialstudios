@@ -84,6 +84,7 @@ const guildSchema = new mongoose.Schema({
         roles: {
             announcements: { type: String, default: null },
             updates: { type: String, default: null },
+            sneak_peeks: { type: String, default: null },
             giveaways: { type: String, default: null },
             events: { type: String, default: null }
         }

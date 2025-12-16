@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 
 const RULES_BANNER = 'https://cdn.discordapp.com/attachments/531892263652032522/1448020593336254594/Gemini_Generated_Image_i8jr95i8jr95i8jr.png';
@@ -10,7 +10,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             const rulesEmbed = new EmbedBuilder()

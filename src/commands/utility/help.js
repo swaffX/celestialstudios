@@ -1,5 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const config = require('../../config');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 
 const HELP_BANNER = 'https://cdn.discordapp.com/attachments/1447262708440236084/1450284176564818063/Gemini_Generated_Image_eyxkuceyxkuceyxk.png';
 
@@ -38,7 +37,7 @@ module.exports = {
                 color: '#9b59b6',
                 commands: [
                     { name: '/invites', desc: 'View invite statistics' },
-                    { name: '/inviteleaderboard', desc: 'View invite leaderboard' },
+                    { name: '/inviteleaderboard', desc: 'Invite leaderboard' },
                     { name: '/addinvites', desc: 'Add bonus invites' }
                 ]
             },
@@ -62,12 +61,12 @@ module.exports = {
                 commands: [
                     { name: '/setwelcome', desc: 'Set welcome channel' },
                     { name: '/setfarewell', desc: 'Set farewell channel' },
-                    { name: '/setautorole', desc: 'Set auto role' },
                     { name: '/setuplogs', desc: 'Setup log channels' },
                     { name: '/setupinfo', desc: 'Create info center' },
                     { name: '/setuprules', desc: 'Create rules embed' },
                     { name: '/setuplinks', desc: 'Create links embed' },
-                    { name: '/setuproles', desc: 'Create role buttons' }
+                    { name: '/setuproles', desc: 'Create role buttons' },
+                    { name: '/setupbooster', desc: 'Booster leaderboard' }
                 ]
             },
             tickets: {
@@ -94,41 +93,44 @@ module.exports = {
             }
         };
 
-        // Create main embed
+        // Create modern embed with stylized fields
         const mainEmbed = new EmbedBuilder()
             .setColor('#5865F2')
             .setAuthor({
-                name: interaction.client.user.username,
+                name: `${interaction.client.user.username} • Command Center`,
                 iconURL: interaction.client.user.displayAvatarURL()
             })
-            .setTitle('📚 Command Center')
             .setDescription(
-                `Hello **${interaction.user.username}**! 👋\n\n` +
-                `Select a category from the dropdown below to view available commands.\n\n` +
-                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+                `> 👋 Hey **${interaction.user.username}**!\n` +
+                `> \n` +
+                `> Select a category below to explore commands.\n` +
+                `> Each category contains useful features!\n\n` +
+                `╭──────────────────────────╮`
             )
             .setImage(HELP_BANNER)
-            .addFields(
-                Object.entries(categories).map(([key, cat]) => ({
-                    name: `${cat.emoji} ${cat.name}`,
-                    value: `\`${cat.commands.length}\` commands`,
-                    inline: true
-                }))
-            )
             .setFooter({
-                text: `Requested by ${interaction.user.tag} • Total: ${Object.values(categories).reduce((sum, cat) => sum + cat.commands.length, 0)} commands`,
+                text: `📚 ${Object.values(categories).reduce((sum, cat) => sum + cat.commands.length, 0)} Total Commands`,
                 iconURL: interaction.user.displayAvatarURL()
             })
             .setTimestamp();
 
+        // Add category fields with modern styling
+        for (const [key, cat] of Object.entries(categories)) {
+            mainEmbed.addFields({
+                name: `${cat.emoji} **${cat.name}**`,
+                value: `\`\`\`${cat.commands.length} cmds\`\`\``,
+                inline: true
+            });
+        }
+
         // Create dropdown menu
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId('help_select')
-            .setPlaceholder('🔍 Select a category...')
+            .setPlaceholder('🔍 Browse command categories...')
             .addOptions(
                 Object.entries(categories).map(([key, cat]) => ({
                     label: cat.name,
-                    description: `View ${cat.commands.length} ${cat.name.toLowerCase()} commands`,
+                    description: `${cat.commands.length} ${cat.name.toLowerCase()} commands`,
                     value: `help_${key}`,
                     emoji: cat.emoji
                 }))
@@ -136,7 +138,6 @@ module.exports = {
 
         const row = new ActionRowBuilder().addComponents(selectMenu);
 
-        // Create home button row (no support server)
         const buttonRow = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('help_home')
@@ -147,8 +148,7 @@ module.exports = {
 
         await interaction.reply({
             embeds: [mainEmbed],
-            components: [row, buttonRow],
-            ephemeral: false
+            components: [row, buttonRow]
         });
     }
 };
