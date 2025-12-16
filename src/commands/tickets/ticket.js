@@ -142,7 +142,17 @@ module.exports = {
             await guildSettings.save();
             const ticketNumber = guildSettings.ticketCounter;
 
-            const category = interaction.guild.channels.cache.get(guildSettings.ticketCategory);
+            // Ensure category exists
+            let category = interaction.guild.channels.cache.get(guildSettings.ticketCategory);
+            if (!category) {
+                category = await interaction.guild.channels.create({
+                    name: 'Tickets',
+                    type: ChannelType.GuildCategory,
+                    permissionOverwrites: [{ id: interaction.guild.id, deny: ['ViewChannel'] }]
+                });
+                guildSettings.ticketCategory = category.id;
+                await guildSettings.save();
+            }
 
             const permissionOverwrites = [
                 { id: interaction.guild.id, deny: ['ViewChannel'] },
@@ -162,14 +172,14 @@ module.exports = {
             const ticketChannel = await interaction.guild.channels.create({
                 name: `ticket-${ticketNumber}`,
                 type: ChannelType.GuildText,
-                parent: category?.id,
+                parent: category.id,
                 permissionOverwrites
             });
 
             await Ticket.create({
                 odaId: interaction.guild.id,
                 channelId: ticketChannel.id,
-                odasi: interaction.user.id,
+                userId: interaction.user.id, // Fixed: odasi -> userId
                 userTag: interaction.user.tag,
                 ticketNumber
             });
