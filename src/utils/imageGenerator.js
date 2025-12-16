@@ -143,18 +143,32 @@ async function createAchievementCard(user, achievements, stats) {
         const inProgress = achievements.filter(a => !a.unlocked).slice(0, 5);
         let itemY = 125;
 
-        for (const ach of inProgress) {
-            const progress = Math.min(ach.current / ach.required, 1);
+        // Category icons (text-based since Jimp doesn't support emoji)
+        const categoryIcons = {
+            'messages': '*',
+            'level': '>',
+            'voiceTime': '~',
+            'streak': '#',
+            'giveawaysWon': '+',
+            'badges': '@',
+            'invites': '>'
+        };
 
-            // Achievement name with emoji
-            const displayName = ach.name.replace(/[^\w\s']/g, '').trim().substring(0, 20);
-            image.print(fontSmall, 25, itemY, `${ach.emoji || '🎯'} ${displayName}`);
+        for (const ach of inProgress) {
+            const progress = Math.min((ach.current || 0) / (ach.required || 1), 1);
+
+            // Achievement name (strip emoji, use category icon)
+            const displayName = ach.name.replace(/[^\w\s']/g, '').trim().substring(0, 18);
+            const icon = categoryIcons[ach.requirement?.type] || '*';
+            image.print(fontSmall, 25, itemY, `${icon} ${displayName}`);
 
             // Progress bar
             drawRoundedProgressBar(image, 25, itemY + 22, 320, 14, progress);
 
             // Progress text
-            const progressText = `${Math.round(progress * 100)}% (${ach.current}/${ach.required})`;
+            const current = ach.current || 0;
+            const required = ach.required || 1;
+            const progressText = `${Math.round(progress * 100)}% (${current}/${required})`;
             image.print(fontSmall, 355, itemY + 18, progressText);
 
             itemY += 50;
