@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 const Guild = require('../../models/Guild');
 const logger = require('../../utils/logger');
@@ -32,7 +32,7 @@ module.exports = {
         if (targetUser.id === interaction.user.id) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'You cannot ban yourself!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -40,7 +40,7 @@ module.exports = {
         if (targetUser.id === interaction.client.user.id) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'You cannot ban me!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -51,14 +51,14 @@ module.exports = {
             if (member.roles.highest.position >= interaction.member.roles.highest.position) {
                 return interaction.reply({
                     embeds: [embedBuilder.error('Error', 'You cannot ban this user! Their role is equal to or higher than yours.')],
-                    ephemeral: true
+                    flags: MessageFlags.Ephemeral
                 });
             }
 
             if (!member.bannable) {
                 return interaction.reply({
                     embeds: [embedBuilder.error('Error', 'I cannot ban this user!')],
-                    ephemeral: true
+                    flags: MessageFlags.Ephemeral
                 });
             }
         }

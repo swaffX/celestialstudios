@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 const Guild = require('../../models/Guild');
 const Ticket = require('../../models/Ticket');
@@ -57,11 +57,11 @@ module.exports = {
         if (channel.type !== ChannelType.GuildText) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'Please select a text channel!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             // Get or create guild settings
@@ -122,7 +122,7 @@ module.exports = {
     },
 
     async handleCreate(interaction, client) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             const guildSettings = await Guild.findOrCreate(interaction.guild.id);
@@ -237,7 +237,7 @@ module.exports = {
         await interaction.reply({
             content: '⚠️ Are you sure you want to close this ticket?',
             components: [row],
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
     },
 
@@ -250,7 +250,7 @@ module.exports = {
             if (!ticket) {
                 return interaction.followUp({
                     content: '❌ This is not a ticket channel!',
-                    ephemeral: true
+                    flags: MessageFlags.Ephemeral
                 });
             }
 
@@ -285,7 +285,7 @@ module.exports = {
         if (!ticket) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'This is not a ticket channel!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -300,7 +300,7 @@ module.exports = {
         if (!ticket) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'This is not a ticket channel!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -324,7 +324,7 @@ module.exports = {
             logger.error('Ticket add error:', error);
             await interaction.reply({
                 embeds: [embedBuilder.error('Error', 'Failed to add user!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
     }

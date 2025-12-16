@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const ms = require('ms');
 const embedBuilder = require('../../utils/embedBuilder');
 const Guild = require('../../models/Guild');
@@ -31,14 +31,14 @@ module.exports = {
         if (!duration || duration < 1000 || duration > 2419200000) { // Max 28 days
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'Invalid duration! Must be between 1 second and 28 days.')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
         if (targetUser.id === interaction.user.id) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'You cannot mute yourself!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -47,21 +47,21 @@ module.exports = {
         if (!member) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'User not found in server!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
         if (member.roles.highest.position >= interaction.member.roles.highest.position) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'You cannot mute this user!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
         if (!member.moderatable) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'I cannot mute this user!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 

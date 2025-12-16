@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 const User = require('../../models/User');
 const Guild = require('../../models/Guild');
@@ -25,7 +25,7 @@ module.exports = {
         if (targetUser.bot) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'You cannot warn bots!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 

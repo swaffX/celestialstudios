@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const ms = require('ms');
 const embedBuilder = require('../../utils/embedBuilder');
 
@@ -121,11 +121,11 @@ module.exports = {
         if (!duration || duration < 60000 || duration > 2592000000) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'Invalid duration! Must be between 1 minute and 30 days.\nExample: 1d, 12h, 30m')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const options = {
             prize,
@@ -168,7 +168,7 @@ module.exports = {
     async handleEnd(interaction, client) {
         const messageId = interaction.options.getString('message_id');
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const Giveaway = require('../../models/Giveaway');
         const giveaway = await Giveaway.findOne({ messageId, ended: false });
@@ -190,7 +190,7 @@ module.exports = {
         const messageId = interaction.options.getString('message_id');
         const count = interaction.options.getInteger('count') || 1;
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const result = await client.giveawayHandler.rerollGiveaway(messageId, count);
 
@@ -224,7 +224,7 @@ module.exports = {
         if (giveaways.length === 0) {
             return interaction.reply({
                 embeds: [embedBuilder.info('Active Giveaways', 'No active giveaways at the moment!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -235,7 +235,7 @@ module.exports = {
 
         await interaction.reply({
             embeds: [embedBuilder.info('🎁 Active Giveaways', list)],
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
     }
 };

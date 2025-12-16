@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const Guild = require('../../models/Guild');
 const embedBuilder = require('../../utils/embedBuilder');
 
@@ -31,7 +31,7 @@ module.exports = {
                 .setDescription('View current log channel status')),
 
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const subcommand = interaction.options.getSubcommand();
         const guild = interaction.guild;

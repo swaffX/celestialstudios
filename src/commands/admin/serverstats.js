@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 const { createStatsChannels, deleteStatsChannels } = require('../../systems/serverStatsSystem');
 const Guild = require('../../models/Guild');
@@ -20,7 +20,7 @@ module.exports = {
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         if (subcommand === 'setup') {
             // Check if already exists

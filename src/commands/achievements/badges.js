@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const User = require('../../models/User');
 const config = require('../../config');
 
@@ -22,7 +22,7 @@ module.exports = {
         if (!userData || userData.badges.length === 0) {
             return interaction.reply({
                 content: `❌ **${targetUser.username}** has no badges yet!`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 

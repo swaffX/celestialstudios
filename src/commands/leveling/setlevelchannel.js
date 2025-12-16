@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 const Guild = require('../../models/Guild');
 
@@ -18,7 +18,7 @@ module.exports = {
         if (channel.type !== 0) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'Please select a text channel!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 

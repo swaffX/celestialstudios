@@ -3,7 +3,7 @@ const User = require('../models/User');
 const embedBuilder = require('../utils/embedBuilder');
 const achievementChecker = require('../utils/achievementChecker');
 const logger = require('../utils/logger');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 
 class GiveawayHandler {
     constructor(client) {
@@ -78,7 +78,7 @@ class GiveawayHandler {
             .addComponents(
                 new ButtonBuilder()
                     .setCustomId('giveaway_enter')
-                    .setLabel('Katıl')
+                    .setLabel('Enter')
                     .setEmoji('🎉')
                     .setStyle(ButtonStyle.Primary)
             );
@@ -105,8 +105,8 @@ class GiveawayHandler {
 
         if (!giveaway) {
             return interaction.reply({
-                content: '❌ Bu çekiliş artık aktif değil!',
-                ephemeral: true
+                content: '❌ This giveaway is no longer active!',
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -121,8 +121,8 @@ class GiveawayHandler {
             await this.updateGiveawayMessage(giveaway);
 
             return interaction.reply({
-                content: '✅ Çekilişten çıktın!',
-                ephemeral: true
+                content: '✅ You left the giveaway!',
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -137,8 +137,8 @@ class GiveawayHandler {
 
         if (!eligible) {
             return interaction.reply({
-                content: `❌ Katılım şartlarını karşılamıyorsun!\n${reason}`,
-                ephemeral: true
+                content: `❌ You don't meet the requirements!\n${reason}`,
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -155,8 +155,8 @@ class GiveawayHandler {
         await this.updateGiveawayMessage(giveaway);
 
         return interaction.reply({
-            content: `✅ Çekilişe katıldın! Şu an **${giveaway.entries.length}** katılımcı var.`,
-            ephemeral: true
+            content: `✅ You entered the giveaway! There are now **${giveaway.entries.length}** entries.`,
+            flags: MessageFlags.Ephemeral
         });
     }
 
@@ -197,7 +197,7 @@ class GiveawayHandler {
                 .addComponents(
                     new ButtonBuilder()
                         .setCustomId('giveaway_ended')
-                        .setLabel('Çekiliş Bitti')
+                        .setLabel('Giveaway Ended')
                         .setEmoji('🎁')
                         .setStyle(ButtonStyle.Secondary)
                         .setDisabled(true)
@@ -209,7 +209,7 @@ class GiveawayHandler {
             if (winners.length > 0) {
                 const winnerMentions = winners.map(id => `<@${id}>`).join(', ');
                 await channel.send({
-                    content: `🎉 Tebrikler ${winnerMentions}! **${giveaway.prize}** kazandınız!\n${message.url}`
+                    content: `🎉 Congratulations ${winnerMentions}! You won **${giveaway.prize}**!\n${message.url}`
                 });
 
                 // Update winner stats and check achievements
@@ -233,7 +233,7 @@ class GiveawayHandler {
                     try {
                         const winner = await this.client.users.fetch(odasi);
                         await winner.send({
-                            content: `🎉 Tebrikler! **${channel.guild.name}** sunucusundaki çekilişte **${giveaway.prize}** kazandın!\n${message.url}`
+                            content: `🎉 Congratulations! You won **${giveaway.prize}** in **${channel.guild.name}**!\n${message.url}`
                         });
                     } catch (e) {
                         // DMs might be disabled
@@ -257,18 +257,18 @@ class GiveawayHandler {
         const giveaway = await Giveaway.findOne({ messageId, ended: true });
 
         if (!giveaway) {
-            return { success: false, message: 'Çekiliş bulunamadı!' };
+            return { success: false, message: 'Giveaway not found!' };
         }
 
         if (giveaway.entries.length === 0) {
-            return { success: false, message: 'Katılımcı yok!' };
+            return { success: false, message: 'No entries!' };
         }
 
         // Select new winners (excluding previous winners)
         const availableEntries = giveaway.entries.filter(id => !giveaway.winnerIds.includes(id));
 
         if (availableEntries.length === 0) {
-            return { success: false, message: 'Yeniden çekim yapılacak katılımcı kalmadı!' };
+            return { success: false, message: 'No remaining entries to reroll!' };
         }
 
         const newWinners = [];

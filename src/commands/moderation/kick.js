@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 const Guild = require('../../models/Guild');
 const logger = require('../../utils/logger');
@@ -24,7 +24,7 @@ module.exports = {
         if (targetUser.id === interaction.user.id) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'You cannot kick yourself!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -33,21 +33,21 @@ module.exports = {
         if (!member) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'User not found in server!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
         if (member.roles.highest.position >= interaction.member.roles.highest.position) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'You cannot kick this user!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
         if (!member.kickable) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'I cannot kick this user!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 const User = require('../../models/User');
 const logger = require('../../utils/logger');
@@ -24,7 +24,7 @@ module.exports = {
         if (!userData || userData.warnings.length === 0) {
             return interaction.reply({
                 content: `✅ **${targetUser.tag}** already has no warnings.`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 

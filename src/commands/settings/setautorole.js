@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js'); const { MessageFlags } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 const Guild = require('../../models/Guild');
 
@@ -19,7 +19,7 @@ module.exports = {
         if (role.position >= interaction.guild.members.me.roles.highest.position) {
             return interaction.reply({
                 embeds: [embedBuilder.error('Error', 'I cannot manage this role!')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
