@@ -67,6 +67,7 @@ class GiveawayHandler {
             hostTag,
             winnersCount: winnersCount || 1,
             endsAt,
+            bannerUrl: options.bannerUrl || null,
             requirements: requirements || {}
         };
 

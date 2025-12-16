@@ -1,9 +1,6 @@
-const { Events } = require('discord.js');
+const { Events, EmbedBuilder } = require('discord.js');
 const Guild = require('../models/Guild');
 const User = require('../models/User');
-const config = require('../config');
-const embedBuilder = require('../utils/embedBuilder');
-const achievementChecker = require('../utils/achievementChecker');
 const logger = require('../utils/logger');
 const { triggerStatsUpdate } = require('../systems/serverStatsSystem');
 
@@ -19,31 +16,77 @@ module.exports = {
             const guildSettings = await Guild.findOrCreate(member.guild.id);
 
             // === INVITE TRACKING ===
-            await this.trackInvite(member, client, guildSettings);
+            const inviteData = await this.trackInvite(member, client, guildSettings);
 
             // === SERVER STATS UPDATE ===
             triggerStatsUpdate(member.guild);
 
-            // Check if welcome feature is enabled
-            if (!guildSettings.features.welcome) return;
+            // === WELCOME SYSTEM ===
+            // Check if welcome system is enabled (new schema) or legacy feature is enabled
+            if (guildSettings.welcomeSystem?.enabled || guildSettings.features?.welcome) {
 
-            // Send welcome message
-            if (guildSettings.welcomeChannel) {
-                try {
-                    const channel = await client.channels.fetch(guildSettings.welcomeChannel);
-                    if (channel) {
-                        const embed = embedBuilder.welcome(member, guildSettings);
-                        await channel.send({
-                            content: `${member}`,
-                            embeds: [embed]
-                        });
+                // Get channel ID from new or old schema
+                const channelId = guildSettings.welcomeSystem?.welcomeChannelId || guildSettings.welcomeChannel;
+
+                if (channelId) {
+                    try {
+                        const channel = await member.guild.channels.fetch(channelId);
+                        if (channel) {
+                            // Get message template
+                            const messageTemplate = guildSettings.welcomeSystem?.welcomeMessage ||
+                                guildSettings.welcomeMessage ||
+                                'Welcome to **{server}**, {user}! You are member #{count}! 🎉';
+
+                            // Replace placeholders
+                            const message = messageTemplate
+                                .replace(/{user}/g, member.toString())
+                                .replace(/{username}/g, member.user.username)
+                                .replace(/{server}/g, member.guild.name)
+                                .replace(/{count}/g, member.guild.memberCount);
+
+                            // Create simplified modern embed
+                            const embed = new EmbedBuilder()
+                                .setColor('#5865F2')
+                                .setDescription(message)
+                                .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
+                                .setImage(guildSettings.welcomeSystem?.bannerUrl || null)
+                                .setTimestamp();
+
+                            await channel.send({ content: `${member}`, embeds: [embed] });
+                        }
+                    } catch (error) {
+                        logger.error('Failed to send welcome message:', error);
                     }
-                } catch (error) {
-                    logger.error('Failed to send welcome message:', error);
                 }
             }
 
-            // Assign auto roles
+            // === INVITE NOTIFICATIONS ===
+            // Send to dedicated invites channel if configured
+            if (guildSettings.welcomeSystem?.invitesChannelId) {
+                try {
+                    const invitesChannel = await member.guild.channels.fetch(guildSettings.welcomeSystem.invitesChannelId);
+                    if (invitesChannel) {
+                        const inviter = inviteData.inviter;
+
+                        const embed = new EmbedBuilder()
+                            .setColor('#9b59b6')
+                            .setAuthor({ name: 'New Member Joined', iconURL: member.user.displayAvatarURL({ dynamic: true }) })
+                            .setDescription(
+                                `**${member.user.tag}** joined the server!\n` +
+                                `> Invited by: ${inviter ? `${inviter} (\`${inviter.tag}\`)` : 'Unknown / Vanity / Bot'}\n` +
+                                `> Total Invites: ${inviteData.inviterCount || 0}`
+                            )
+                            .setFooter({ text: `Member #${member.guild.memberCount}` })
+                            .setTimestamp();
+
+                        await invitesChannel.send({ embeds: [embed] });
+                    }
+                } catch (error) {
+                    logger.error('Failed to send invite notification:', error);
+                }
+            }
+
+            // === AUTO ROLES ===
             if (guildSettings.autoRoles && guildSettings.autoRoles.length > 0) {
                 for (const roleId of guildSettings.autoRoles) {
                     try {
@@ -58,88 +101,59 @@ module.exports = {
                 }
             }
 
-            logger.info(`${member.user.tag} joined ${member.guild.name}`);
-
         } catch (error) {
-            logger.error('Error in guildMemberAdd event:', error);
+            logger.error('GuildMemberAdd error:', error);
         }
     },
 
     async trackInvite(member, client, guildSettings) {
+        let inviter = null;
+        let inviterCount = 0;
+
         try {
-            // Get cached invites
-            const cachedInvites = inviteCreateEvent.getCache().get(member.guild.id) || new Map();
+            const guildInvites = await member.guild.invites.fetch();
+            const cachedInvites = inviteCreateEvent.getInvites(member.guild.id);
 
-            // Fetch current invites
-            const newInvites = await member.guild.invites.fetch();
-
-            // Find the invite that was used
-            let usedInvite = null;
-
-            newInvites.forEach(invite => {
-                const cachedUses = cachedInvites.get(invite.code) || 0;
-                if (invite.uses > cachedUses) {
-                    usedInvite = invite;
-                }
+            const usedInvite = guildInvites.find(inv => {
+                const cached = cachedInvites.get(inv.code);
+                return cached && inv.uses > cached;
             });
 
-            // Update cache
-            await inviteCreateEvent.updateCache(member.guild);
+            if (usedInvite) {
+                inviter = usedInvite.inviter;
 
-            if (!usedInvite || !usedInvite.inviter) return;
-
-            // Check account age
-            const accountAge = Math.floor((Date.now() - member.user.createdAt) / (1000 * 60 * 60 * 24));
-            if (accountAge < config.invites.minAccountAge) {
-                logger.info(`Invite from ${usedInvite.inviter.tag} not counted - account too new`);
-                return;
-            }
-
-            // Get or create inviter's data
-            const inviterData = await User.findOrCreate(usedInvite.inviter.id, member.guild.id);
-
-            // Increment invites
-            inviterData.invites++;
-
-            // Add XP reward
-            inviterData.totalXp += config.invites.xpPerInvite;
-            inviterData.xp += config.invites.xpPerInvite;
-
-            await inviterData.save();
-
-            // Save who invited the new member
-            const newMemberData = await User.findOrCreate(member.id, member.guild.id);
-            newMemberData.invitedBy = usedInvite.inviter.id;
-            newMemberData.inviteCode = usedInvite.code;
-            await newMemberData.save();
-
-            // Check achievements for inviter
-            try {
-                const inviterMember = await member.guild.members.fetch(usedInvite.inviter.id);
-                const unlockedAchievements = await achievementChecker.check(inviterData, client, inviterMember);
-
-                // Notify about unlocked achievements
-                for (const achievement of unlockedAchievements) {
-                    if (guildSettings.levelChannel) {
-                        try {
-                            const channel = await client.channels.fetch(guildSettings.levelChannel);
-                            if (channel) {
-                                const embed = embedBuilder.achievement(inviterMember.user, achievement);
-                                await channel.send({ embeds: [embed] });
-                            }
-                        } catch (error) {
-                            logger.error('Failed to send achievement notification:', error);
-                        }
-                    }
+                // Update user stats
+                let userData = await User.findOne({ odasi: inviter.id, odaId: member.guild.id });
+                if (!userData) {
+                    userData = await User.create({ odasi: inviter.id, odaId: member.guild.id });
                 }
-            } catch (error) {
-                // Inviter might have left
+
+                userData.invites.total++;
+                userData.invites.regular++;
+
+                // Track who invited this member
+                let newMemberData = await User.findOne({ odasi: member.id, odaId: member.guild.id });
+                if (!newMemberData) {
+                    newMemberData = await User.create({ odasi: member.id, odaId: member.guild.id });
+                }
+                newMemberData.invitedBy = inviter.id;
+                await newMemberData.save();
+
+                // Bonus XP for inviter
+                userData.xp += 100;
+
+                await userData.save();
+
+                inviterCount = userData.invites.total + (userData.invites.bonus || 0);
             }
 
-            logger.info(`${member.user.tag} was invited by ${usedInvite.inviter.tag} (Total: ${inviterData.invites})`);
+            // Update cache
+            inviteCreateEvent.setInvites(member.guild.id, guildInvites);
 
         } catch (error) {
             logger.error('Error tracking invite:', error);
         }
+
+        return { inviter, inviterCount };
     }
 };

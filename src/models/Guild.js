@@ -105,6 +105,35 @@ const guildSchema = new mongoose.Schema({
         }
     },
 
+    // Welcome System
+    welcomeSystem: {
+        enabled: { type: Boolean, default: false },
+        welcomeChannelId: { type: String, default: null },
+        farewellChannelId: { type: String, default: null },
+        invitesChannelId: { type: String, default: null },
+        categoryId: { type: String, default: null },
+        welcomeMessage: { type: String, default: null },
+        farewellMessage: { type: String, default: null },
+        bannerUrl: { type: String, default: null }
+    },
+
+    // Level System
+    levelSystem: {
+        enabled: { type: Boolean, default: false },
+        levelUpChannelId: { type: String, default: null },
+        leaderboardChannelId: { type: String, default: null },
+        categoryId: { type: String, default: null },
+        leaderboardMessageId: { type: String, default: null },
+        xpPerMessage: { type: Number, default: 20 },
+        xpCooldown: { type: Number, default: 60 },
+        levelRoles: [{
+            level: { type: Number, required: true },
+            roleId: { type: String, required: true },
+            name: { type: String },
+            anime: { type: String }
+        }]
+    },
+
     // Stats
     totalGiveaways: { type: Number, default: 0 },
     totalTickets: { type: Number, default: 0 }

@@ -56,7 +56,11 @@ module.exports = {
                     option.setName('min_invites')
                         .setDescription('Minimum invites requirement (Special Giveaway)')
                         .setRequired(false)
-                        .setMinValue(1)))
+                        .setMinValue(1))
+                .addStringOption(option =>
+                    option.setName('banner_url')
+                        .setDescription('Banner image URL for the giveaway embed')
+                        .setRequired(false)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('end')
@@ -115,6 +119,7 @@ module.exports = {
         const minAccountAge = interaction.options.getInteger('min_account_age') || 0;
         const minServerAge = interaction.options.getInteger('min_server_age') || 0;
         const minInvites = interaction.options.getInteger('min_invites') || 0;
+        const bannerUrl = interaction.options.getString('banner_url');
 
         // Parse duration
         const duration = ms(durationStr);
@@ -134,6 +139,7 @@ module.exports = {
             winnersCount,
             hostId: interaction.user.id,
             hostTag: interaction.user.tag,
+            bannerUrl: bannerUrl || null,
             requirements: {
                 requiredRoles: requiredRole ? [requiredRole.id] : [],
                 minLevel,

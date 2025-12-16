@@ -84,6 +84,10 @@ const embedBuilder = {
             .setFooter({ text: 'Click 🎉 to enter!' })
             .setTimestamp(giveawayData.endsAt);
 
+        if (giveawayData.bannerUrl) {
+            embed.setImage(giveawayData.bannerUrl);
+        }
+
         // Add requirements if any
         const req = giveawayData.requirements;
         const reqTexts = [];

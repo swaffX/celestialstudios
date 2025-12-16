@@ -1,8 +1,6 @@
-const { Events } = require('discord.js');
+const { Events, EmbedBuilder } = require('discord.js');
 const Guild = require('../models/Guild');
 const User = require('../models/User');
-const config = require('../config');
-const embedBuilder = require('../utils/embedBuilder');
 const logger = require('../utils/logger');
 const { triggerStatsUpdate } = require('../systems/serverStatsSystem');
 
@@ -14,66 +12,61 @@ module.exports = {
         try {
             const guildSettings = await Guild.findOrCreate(member.guild.id);
 
-            // === FAKE INVITE PENALTY ===
-            if (config.invites.fakeInvitePenalty) {
-                await this.handleFakeInvite(member);
-            }
-
             // === SERVER STATS UPDATE ===
             triggerStatsUpdate(member.guild);
 
-            // Check if farewell feature is enabled
-            if (!guildSettings.features.farewell) return;
+            // === FAREWELL SYSTEM ===
+            if (guildSettings.welcomeSystem?.enabled || guildSettings.features?.farewell) {
 
-            // Send farewell message
-            if (guildSettings.farewellChannel) {
-                try {
-                    const channel = await client.channels.fetch(guildSettings.farewellChannel);
-                    if (channel) {
-                        const embed = embedBuilder.farewell(member, guildSettings);
-                        await channel.send({ embeds: [embed] });
+                const channelId = guildSettings.welcomeSystem?.farewellChannelId || guildSettings.farewellChannel;
+
+                if (channelId) {
+                    try {
+                        const channel = await member.guild.channels.fetch(channelId);
+                        if (channel) {
+                            const messageTemplate = guildSettings.welcomeSystem?.farewellMessage ||
+                                guildSettings.farewellMessage ||
+                                'Goodbye **{username}**! We hope to see you again! 👋';
+
+                            const message = messageTemplate
+                                .replace(/{username}/g, member.user.username)
+                                .replace(/{user}/g, member.user.tag)
+                                .replace(/{server}/g, member.guild.name)
+                                .replace(/{count}/g, member.guild.memberCount);
+
+                            await channel.send({ content: message });
+                        }
+                    } catch (error) {
+                        logger.error('Failed to send farewell message:', error);
                     }
-                } catch (error) {
-                    logger.error('Failed to send farewell message:', error);
                 }
             }
 
-            logger.info(`${member.user.tag} left ${member.guild.name}`);
+            // === FAKE INVITE CHECK & PENALTY ===
+            // Check if user was invited by someone
+            const leavingUserData = await User.findOne({ odasi: member.id, odaId: member.guild.id });
 
-        } catch (error) {
-            logger.error('Error in guildMemberRemove event:', error);
-        }
-    },
+            if (leavingUserData && leavingUserData.invitedBy) {
+                const inviterId = leavingUserData.invitedBy;
+                const inviterData = await User.findOne({ odasi: inviterId, odaId: member.guild.id });
 
-    async handleFakeInvite(member) {
-        try {
-            // Find who invited this member
-            const leavingUser = await User.findOne({
-                odasi: member.id,
-                odaId: member.guild.id
-            });
+                if (inviterData) {
+                    // It was a fake invite (user left)
+                    inviterData.invites.fake++;
+                    if (inviterData.invites.regular > 0) {
+                        inviterData.invites.regular--;
+                    }
+                    if (inviterData.invites.total > 0) {
+                        inviterData.invites.total--;
+                    }
+                    await inviterData.save();
 
-            if (!leavingUser || !leavingUser.invitedBy) return;
-
-            // Get inviter's data and decrement invite
-            const inviterData = await User.findOne({
-                odasi: leavingUser.invitedBy,
-                odaId: member.guild.id
-            });
-
-            if (!inviterData) return;
-
-            // Decrement invite count and add fake invite
-            if (inviterData.invites > 0) {
-                inviterData.invites--;
-                inviterData.fakeInvites++;
-                await inviterData.save();
-
-                logger.info(`Fake invite recorded: ${member.user.tag} left (invited by ${leavingUser.invitedBy})`);
+                    logger.info(`Fake invite detected: ${member.user.tag} left, inviter: ${inviterId}`);
+                }
             }
 
         } catch (error) {
-            logger.error('Error handling fake invite:', error);
+            logger.error('GuildMemberRemove error:', error);
         }
     }
 };
