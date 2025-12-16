@@ -57,6 +57,11 @@ async function updateBoosterEmbed(guild, channelId, bannerUrl = null) {
         const levelInfo = nextLevelReqs[boostLevel];
         const boostsForNext = Math.max(0, levelInfo.next - boostCount);
 
+        // Calculate average boosts per person
+        const avgBoostsPerPerson = boostersArray.length > 0
+            ? Math.ceil(boostCount / boostersArray.length)
+            : 0;
+
         // Build booster list with avatars and time
         const boosterListLines = boostersArray.slice(0, 15).map((member, index) => {
             const boostTime = member.premiumSince;
@@ -68,7 +73,10 @@ async function updateBoosterEmbed(guild, channelId, bannerUrl = null) {
             else if (index === 2) medal = '🥉';
             else medal = `\`${index + 1}.\``;
 
-            return `${medal} <@${member.id}>\n> ⏱️ **${daysBoosting}** days • <t:${Math.floor(boostTime.getTime() / 1000)}:R>`;
+            // Show estimated boost count
+            const boostTier = avgBoostsPerPerson > 1 ? ` • 💎 ${avgBoostsPerPerson}x Boost` : '';
+
+            return `${medal} <@${member.id}>\n> ⏱️ **${daysBoosting}** days${boostTier} • <t:${Math.floor(boostTime.getTime() / 1000)}:R>`;
         });
 
         const embed = new EmbedBuilder()
