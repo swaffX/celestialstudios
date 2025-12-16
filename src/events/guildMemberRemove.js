@@ -24,17 +24,39 @@ module.exports = {
                     try {
                         const channel = await member.guild.channels.fetch(channelId);
                         if (channel) {
-                            const messageTemplate = guildSettings.welcomeSystem?.farewellMessage ||
-                                guildSettings.farewellMessage ||
-                                'Goodbye **{username}**! We hope to see you again! 👋';
+                            // Premium Farewell Embed
+                            const memberCount = member.guild.memberCount;
 
-                            const message = messageTemplate
-                                .replace(/{username}/g, member.user.username)
-                                .replace(/{user}/g, member.user.tag)
-                                .replace(/{server}/g, member.guild.name)
-                                .replace(/{count}/g, member.guild.memberCount);
+                            const embed = new EmbedBuilder()
+                                .setColor('#ED4245') // Discord red
+                                .setAuthor({
+                                    name: 'Member Left',
+                                    iconURL: member.guild.iconURL({ dynamic: true })
+                                })
+                                .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 512 }))
+                                .setDescription(
+                                    `## 👋 Goodbye, ${member.user.username}!\n\n` +
+                                    `> We're sad to see you go.\n` +
+                                    `> Hope to see you again soon!\n\n` +
+                                    `╭───────────────────────────╮`
+                                )
+                                .addFields(
+                                    {
+                                        name: '👤 Member',
+                                        value: `\`${member.user.tag}\``,
+                                        inline: true
+                                    },
+                                    {
+                                        name: '📊 Members Now',
+                                        value: `\`${memberCount}\``,
+                                        inline: true
+                                    }
+                                )
+                                .setImage('https://cdn.discordapp.com/attachments/531892263652032522/1450318352022114535/Gemini_Generated_Image_pkcjdjpkcjdjpkcj.png')
+                                .setFooter({ text: `We now have ${memberCount} members`, iconURL: member.user.displayAvatarURL() })
+                                .setTimestamp();
 
-                            await channel.send({ content: message });
+                            await channel.send({ embeds: [embed] });
                         }
                     } catch (error) {
                         logger.error('Failed to send farewell message:', error);

@@ -32,24 +32,42 @@ module.exports = {
                     try {
                         const channel = await member.guild.channels.fetch(channelId);
                         if (channel) {
-                            // Get message template
-                            const messageTemplate = guildSettings.welcomeSystem?.welcomeMessage ||
-                                guildSettings.welcomeMessage ||
-                                'Welcome to **{server}**, {user}! You are member #{count}! 🎉';
+                            // Premium Welcome Embed
+                            const memberCount = member.guild.memberCount;
+                            const createdAt = Math.floor(member.user.createdTimestamp / 1000);
 
-                            // Replace placeholders
-                            const message = messageTemplate
-                                .replace(/{user}/g, member.toString())
-                                .replace(/{username}/g, member.user.username)
-                                .replace(/{server}/g, member.guild.name)
-                                .replace(/{count}/g, member.guild.memberCount);
-
-                            // Create simplified modern embed
                             const embed = new EmbedBuilder()
-                                .setColor('#5865F2')
-                                .setDescription(message)
-                                .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
-                                .setImage(guildSettings.welcomeSystem?.bannerUrl || null)
+                                .setColor('#43B581') // Discord green
+                                .setAuthor({
+                                    name: `Welcome to ${member.guild.name}!`,
+                                    iconURL: member.guild.iconURL({ dynamic: true })
+                                })
+                                .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 512 }))
+                                .setDescription(
+                                    `## 👋 Hey ${member}!\n\n` +
+                                    `> Thanks for joining our community.\n` +
+                                    `> Make sure to read the rules and enjoy your stay!\n\n` +
+                                    `╭───────────────────────────╮`
+                                )
+                                .addFields(
+                                    {
+                                        name: '👤 Member',
+                                        value: `\`${member.user.username}\``,
+                                        inline: true
+                                    },
+                                    {
+                                        name: '🎂 Account Created',
+                                        value: `<t:${createdAt}:R>`,
+                                        inline: true
+                                    },
+                                    {
+                                        name: '📊 Member Count',
+                                        value: `\`#${memberCount}\``,
+                                        inline: true
+                                    }
+                                )
+                                .setImage(guildSettings.welcomeSystem?.bannerUrl || 'https://cdn.discordapp.com/attachments/531892263652032522/1450318087948603486/Gemini_Generated_Image_mhflenmhflenmhfl.png')
+                                .setFooter({ text: `Member #${memberCount} • Joined the server`, iconURL: member.user.displayAvatarURL() })
                                 .setTimestamp();
 
                             await channel.send({ content: `${member}`, embeds: [embed] });
