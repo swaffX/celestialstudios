@@ -4,11 +4,11 @@ const embedBuilder = require('../../utils/embedBuilder');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setupinfo')
-        .setDescription('Create info dropdown menu')
+        .setDescription('Create info center with category dropdown')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .addStringOption(option =>
             option.setName('banner_url')
-                .setDescription('Banner image URL (optional)')
+                .setDescription('Banner image URL')
                 .setRequired(false)),
 
     async execute(interaction) {
@@ -16,50 +16,19 @@ module.exports = {
 
         try {
             const bannerUrl = interaction.options.getString('banner_url');
-            const memberCount = interaction.guild.memberCount;
-            const boostLevel = interaction.guild.premiumTier;
-            const boostCount = interaction.guild.premiumSubscriptionCount || 0;
 
             const infoEmbed = new EmbedBuilder()
-                .setColor('#2B2D31')
-                .setAuthor({
-                    name: interaction.guild.name.toUpperCase(),
-                    iconURL: interaction.guild.iconURL({ dynamic: true })
-                })
-                .setTitle('📚 Information Center')
+                .setColor('#5865F2')
+                .setTitle('ℹ️ Information Center')
                 .setDescription(
-                    `> Your hub for everything about ${interaction.guild.name}!\n\n` +
-                    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-                    `**📊 Server Statistics**\n\n` +
-                    `> 👥 **Members:** \`${memberCount.toLocaleString()}\`\n` +
-                    `> 💎 **Boost Level:** \`Level ${boostLevel}\`\n` +
-                    `> 🚀 **Total Boosts:** \`${boostCount}\`\n\n` +
-                    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+                    `**Welcome to ${interaction.guild.name}!**\n\n` +
+                    `Use the dropdown menu below to navigate to different info sections.\n\n` +
+                    `💡 Don't forget to read the rules!`
                 )
-                .addFields(
-                    {
-                        name: '📖 Quick Navigation',
-                        value: [
-                            '```',
-                            '🎭 Roles    - View server roles & perks',
-                            '🔗 Links    - Official game & social links',
-                            '📹 CC       - Content Creator requirements',
-                            '```'
-                        ].join('\n'),
-                        inline: false
-                    },
-                    {
-                        name: '💡 Tip',
-                        value: '> Use the dropdown menu below to explore each section!',
-                        inline: false
-                    }
-                )
-                .setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 512 }))
                 .setFooter({
-                    text: '⭐ Select an option to learn more!',
+                    text: `${interaction.guild.name} • ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`,
                     iconURL: interaction.guild.iconURL({ dynamic: true })
-                })
-                .setTimestamp();
+                });
 
             if (bannerUrl) {
                 infoEmbed.setImage(bannerUrl);
@@ -67,25 +36,25 @@ module.exports = {
 
             const selectMenu = new StringSelectMenuBuilder()
                 .setCustomId('info_select')
-                .setPlaceholder('🔍 Select a category to explore...')
+                .setPlaceholder('Select a category...')
                 .addOptions([
                     {
-                        label: 'Server Roles',
-                        description: 'View all roles and how to get them',
+                        label: 'Roles',
+                        description: 'View available server roles',
                         value: 'info_roles',
-                        emoji: '🎭'
+                        emoji: '🛡️'
                     },
                     {
-                        label: 'Official Links',
-                        description: 'Game, group, and social media links',
+                        label: 'Links',
+                        description: 'View important links',
                         value: 'info_links',
                         emoji: '🔗'
                     },
                     {
-                        label: 'Content Creator',
-                        description: 'Requirements for CC role',
+                        label: 'CC Requirements',
+                        description: 'Content Creator requirements',
                         value: 'info_cc',
-                        emoji: '📹'
+                        emoji: '📋'
                     }
                 ]);
 
@@ -94,12 +63,12 @@ module.exports = {
             await interaction.channel.send({ embeds: [infoEmbed], components: [row] });
 
             await interaction.editReply({
-                embeds: [embedBuilder.success('Success', 'Info dropdown menu created!')]
+                embeds: [embedBuilder.success('Success', 'Info center created!')]
             });
         } catch (error) {
             console.error('Info command error:', error);
             await interaction.editReply({
-                embeds: [embedBuilder.error('Error', 'Failed to create info menu.')]
+                embeds: [embedBuilder.error('Error', 'Failed to create info center.')]
             });
         }
     }

@@ -2,7 +2,6 @@ const { Events, EmbedBuilder } = require('discord.js');
 const logger = require('../utils/logger');
 const embedBuilder = require('../utils/embedBuilder');
 const { handleStatsButton } = require('../systems/statsEmbedSystem');
-const config = require('../config');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -128,54 +127,88 @@ module.exports = {
                 // Info dropdown menu
                 if (interaction.customId === 'info_select') {
                     const value = interaction.values[0];
-
                     let embed;
 
                     if (value === 'info_roles') {
                         embed = new EmbedBuilder()
-                            .setColor('#2B2D31')
-                            .setTitle('🎭 Server Roles')
-                            .setDescription(
-                                `**Staff Roles**\n` +
-                                `> 👑 **Owner** - Server owner\n` +
-                                `> ⚔️ **Admin** - Full permissions\n` +
-                                `> 🛡️ **Moderator** - Moderation access\n\n` +
-                                `**Special Roles**\n` +
-                                `> 💎 **Booster** - Server boosters\n` +
-                                `> 📹 **Content Creator** - Verified creators\n` +
-                                `> 🏆 **VIP** - Special members\n\n` +
-                                `**Level Roles**\n` +
-                                `> Earn XP by chatting and being active!`
+                            .setColor('#5865F2')
+                            .setTitle('🛡️ Server Roles')
+                            .setDescription(`Here are the roles on our server:`)
+                            .addFields(
+                                {
+                                    name: '👑 Management',
+                                    value: '@Project Leader\n@Owner',
+                                    inline: true
+                                },
+                                {
+                                    name: '🛡️ Staff',
+                                    value: '@Moderator\n@Helper',
+                                    inline: true
+                                },
+                                {
+                                    name: '👥 Members',
+                                    value: '@Supporter\n@Verified\n@Unverified',
+                                    inline: true
+                                },
+                                {
+                                    name: '⚔️ Level Roles',
+                                    value: [
+                                        '`Lv.100` Pirate King     `Lv.25` Demon Slayer',
+                                        '`Lv.75`  Hokage          `Lv.20` Supernova',
+                                        '`Lv.50`  Hashira         `Lv.15` Chunin',
+                                        '`Lv.40`  Espada          `Lv.10` Soul Reaper',
+                                        '`Lv.30`  Jonin           `Lv.5`  Genin'
+                                    ].join('\n'),
+                                    inline: false
+                                }
                             )
-                            .setFooter({ text: 'Roles are earned through activity and contributions!' });
+                            .setFooter({
+                                text: `${interaction.guild.name} • Level up by chatting and being in voice!`,
+                                iconURL: interaction.guild.iconURL({ dynamic: true })
+                            })
+                            .setTimestamp();
                     } else if (value === 'info_links') {
                         embed = new EmbedBuilder()
-                            .setColor('#2B2D31')
+                            .setColor('#FF0000')
                             .setTitle('🔗 Official Links')
-                            .setDescription(
-                                `**🎮 Roblox**\n` +
-                                `> [Play Our Game](${config.links?.robloxGame || 'https://roblox.com'})\n` +
-                                `> [Join Our Group](${config.links?.robloxGroup || 'https://roblox.com/groups'})\n\n` +
-                                `**📱 Social Media**\n` +
-                                `> Follow us for updates and announcements!`
+                            .setDescription(`Find us here:`)
+                            .addFields(
+                                {
+                                    name: '🎬 YouTube Channel',
+                                    value: 'Check out our content!',
+                                    inline: false
+                                },
+                                {
+                                    name: '📜 Terms of Service',
+                                    value: '[Discord TOS](https://discord.com/terms) • [YouTube TOS](https://www.youtube.com/t/terms)',
+                                    inline: false
+                                }
                             )
-                            .setFooter({ text: 'Stay connected!' });
+                            .setFooter({
+                                text: `${interaction.guild.name}`,
+                                iconURL: interaction.guild.iconURL({ dynamic: true })
+                            })
+                            .setTimestamp();
                     } else if (value === 'info_cc') {
                         embed = new EmbedBuilder()
-                            .setColor('#2B2D31')
-                            .setTitle('📹 Content Creator Program')
+                            .setColor('#9B59B6')
+                            .setTitle('📋 Content Creator Requirements')
                             .setDescription(
                                 `**Requirements:**\n` +
                                 `> 📊 Minimum 1,000 subscribers/followers\n` +
-                                `> 🎥 Regular content about our game\n` +
+                                `> 🎥 Regular content about our community\n` +
                                 `> 🎯 Active community presence\n\n` +
                                 `**Benefits:**\n` +
                                 `> 🏷️ Exclusive CC role\n` +
                                 `> 📢 Content promotion\n` +
-                                `> 🎁 Early access to updates\n\n` +
+                                `> 🎁 Special perks\n\n` +
                                 `*Open a ticket to apply!*`
                             )
-                            .setFooter({ text: 'We love our content creators!' });
+                            .setFooter({
+                                text: 'We love our content creators!',
+                                iconURL: interaction.guild.iconURL({ dynamic: true })
+                            })
+                            .setTimestamp();
                     }
 
                     if (embed) {
