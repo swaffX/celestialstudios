@@ -21,63 +21,35 @@ module.exports = {
                 })
                 .setTitle('📜 Server Rules')
                 .setDescription(
-                    `> By being in this server, you agree to follow all rules below.\n\n` +
-                    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
-                )
                 .addFields(
                     {
-                        name: '1️⃣ Be Respectful',
-                        value: '> Be respectful to other people, treat others like how you want them to treat you.',
+                        name: '📋 General Conduct',
+                        value: '`1.` Be respectful to all members.\n`2.` No hate speech, harassment, or discrimination.\n`3.` No NSFW content (Zero Tolerance).\n`4.` No advertising without permission.\n`5.` Staff decisions are final.',
+                        inline: false
+                    },
+                    {
+                        name: '💬 Chat & Voice',
+                        value: '• No spamming, flooding, or excessive caps.\n• Use correct channels for your topics.\n• No mic spam, loud noises, or soundboard abuse.\n• Respect others in voice channels.',
                         inline: true
                     },
                     {
-                        name: '2️⃣ Use Correct Channels',
-                        value: '> Use the correct channels when possible. If you are unsure, ping a mod.',
+                        name: '🛡️ Security',
+                        value: '• No malicious links or crashing GIFs.\n• No sharing of personal information (Doxxing).\n• Report bugs/exploits, do not abuse them.',
                         inline: true
                     },
                     {
-                        name: '3️⃣ No Malicious Links',
-                        value: '> Do not send malicious links, doing so will result in a punishment.',
-                        inline: true
+                        name: '⚠️ Consequences',
+                        value: '`Tier 1:` Verbal Warning\n`Tier 2:` Timeout / Mute\n`Tier 3:` Kick from Server\n`Tier 4:` Permanent Ban',
+                        inline: false
                     },
                     {
-                        name: '4️⃣ Chat Etiquette',
-                        value: '> Practice chat etiquette, refrain from spamming/flooding channels.',
-                        inline: true
-                    },
-                    {
-                        name: '5️⃣ Voice Chat Rules',
-                        value: '> While in a voice channel, do not spam loud noises/soundboard.',
-                        inline: true
-                    },
-                    {
-                        name: '6️⃣ Language Rules',
-                        value: '> Cursing is allowed, but extreme ones (including the hard r) are not allowed.',
-                        inline: true
-                    },
-                    {
-                        name: '7️⃣ No Arguments',
-                        value: '> Don\'t bring arguments into the server. Do it in DMs.',
-                        inline: true
-                    },
-                    {
-                        name: '8️⃣ Stay SFW',
-                        value: '> Not everyone in the server is above the age of 18.',
-                        inline: true
-                    },
-                    {
-                        name: '9️⃣ Staff Discretion',
-                        value: '> The staff reserves the right to punish a member even if no rules have been directly violated.',
-                        inline: true
-                    },
-                    {
-                        name: '⚠️ IMPORTANT',
-                        value: '```diff\n- LEAKING OF PAID ASSETS IS STRICTLY PROHIBITED\n- IF YOU ARE FOUND DOING SO IT WILL LEAD TO AN INSTANT BAN\n```',
+                        name: '🚨 IMPORTANT ASSET RULES',
+                        value: '```diff\n- LEAKING OF PAID ASSETS IS STRICTLY PROHIBITED\n- ANY ATTEMPT WILL RESULT IN AN INSTANT BAN\n```',
                         inline: false
                     },
                     {
                         name: '📜 Terms of Service',
-                        value: '> 🔗 [Discord TOS](https://discord.com/terms) also applies here.',
+                        value: '🔗 [Discord ToS](https://discord.com/terms) • [Community Guidelines](https://discord.com/guidelines)',
                         inline: false
                     }
                 )
