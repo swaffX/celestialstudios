@@ -3,6 +3,8 @@ const embedBuilder = require('../../utils/embedBuilder');
 const { updateBoosterEmbed } = require('../../systems/boosterSystem');
 const Guild = require('../../models/Guild');
 
+const BOOSTER_BANNER = 'https://cdn.discordapp.com/attachments/531892263652032522/1448040840642691236/Gemini_Generated_Image_e3ipe2e3ipe2e3ip.png';
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setupbooster')
@@ -32,7 +34,7 @@ module.exports = {
 
         try {
             // Update or create the booster embed
-            const message = await updateBoosterEmbed(interaction.guild, channel.id, banner);
+            const message = await updateBoosterEmbed(interaction.guild, channel.id, banner || BOOSTER_BANNER);
 
             if (!message) {
                 return interaction.editReply({

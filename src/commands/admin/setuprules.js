@@ -1,22 +1,18 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const embedBuilder = require('../../utils/embedBuilder');
 
+const RULES_BANNER = 'https://cdn.discordapp.com/attachments/531892263652032522/1448020593336254594/Gemini_Generated_Image_i8jr95i8jr95i8jr.png';
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setuprules')
         .setDescription('Create server rules embed')
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-        .addStringOption(option =>
-            option.setName('banner_url')
-                .setDescription('Banner image URL (optional)')
-                .setRequired(false)),
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
     async execute(interaction) {
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            const bannerUrl = interaction.options.getString('banner_url');
-
             const rulesEmbed = new EmbedBuilder()
                 .setColor('#2B2D31')
                 .setAuthor({
@@ -30,65 +26,67 @@ module.exports = {
                 )
                 .addFields(
                     {
-                        name: '📋 General Conduct',
-                        value: [
-                            '> **1.** Be respectful to all members',
-                            '> **2.** No hate speech, harassment, or discrimination',
-                            '> **3.** No spam or excessive caps',
-                            '> **4.** No NSFW content (zero tolerance)',
-                            '> **5.** No advertising without permission'
-                        ].join('\n'),
+                        name: '1️⃣ Be Respectful',
+                        value: '> Be respectful to other people, treat others like how you want them to treat you.',
                         inline: false
                     },
                     {
-                        name: '🎙️ Voice Chat',
-                        value: [
-                            '```',
-                            '• No mic spam or loud noises',
-                            '• No voice changers without permission',
-                            '• Respect ongoing conversations',
-                            '• Keep background noise minimal',
-                            '```'
-                        ].join('\n'),
-                        inline: true
+                        name: '2️⃣ Use Correct Channels',
+                        value: '> Use the correct channels when possible. If you are unsure, ping a mod.\n> Bot commands strictly in bot-commands channel.',
+                        inline: false
                     },
                     {
-                        name: '⚔️ Gaming',
-                        value: [
-                            '```',
-                            '• No cheating or exploiting',
-                            '• Be a good sport',
-                            '• Report bugs, dont abuse them',
-                            '• Help new players',
-                            '```'
-                        ].join('\n'),
-                        inline: true
+                        name: '3️⃣ No Malicious Links',
+                        value: '> Do not send malicious links, doing so will result in a punishment.\n> Crashing GIFs fall under here.',
+                        inline: false
                     },
                     {
-                        name: '⚠️ Consequences',
-                        value: [
-                            '> **Tier 1:** Verbal Warning',
-                            '> **Tier 2:** Temporary Mute',
-                            '> **Tier 3:** Temporary Ban',
-                            '> **Tier 4:** Permanent Ban'
-                        ].join('\n'),
+                        name: '4️⃣ Chat Etiquette',
+                        value: '> Practice chat etiquette, refrain from spamming/flooding channels.\n> This also includes spam pinging.',
+                        inline: false
+                    },
+                    {
+                        name: '5️⃣ Voice Chat Rules',
+                        value: '> While in a voice channel, do not spam loud noises/soundboard.\n> Soundboard is fun from time to time but repetitive spamming could be annoying.',
+                        inline: false
+                    },
+                    {
+                        name: '6️⃣ Language Rules',
+                        value: '> Cursing is allowed, but extreme ones (including the hard r) are not allowed.\n> Even if it isn\'t directed at someone, you will still be punished.',
+                        inline: false
+                    },
+                    {
+                        name: '7️⃣ No Arguments',
+                        value: '> Don\'t bring arguments into the server. Do it in DMs.\n> Just don\'t start arguments in general.',
+                        inline: false
+                    },
+                    {
+                        name: '8️⃣ Stay SFW',
+                        value: '> Not everyone in the server is above the age of 18.',
+                        inline: false
+                    },
+                    {
+                        name: '9️⃣ Staff Discretion',
+                        value: '> The staff reserves the right to punish a member even if no rules have been directly violated as long as the member in question has been disrespectful to the staff.',
+                        inline: false
+                    },
+                    {
+                        name: '⚠️ IMPORTANT',
+                        value: '```diff\n- LEAKING OF PAID ASSETS IS STRICTLY PROHIBITED\n- IF YOU ARE FOUND DOING SO IT WILL LEAD TO AN INSTANT BAN\n```',
                         inline: false
                     },
                     {
                         name: '📜 Terms of Service',
-                        value: '> 🔗 [Discord ToS](https://discord.com/terms) • [Roblox ToS](https://en.help.roblox.com/hc/en-us/articles/115004647846)',
+                        value: '> 🔗 [Discord TOS](https://discord.com/terms) also applies here.',
                         inline: false
                     }
                 )
+                .setImage(RULES_BANNER)
                 .setFooter({
                     text: '⚖️ Staff decisions are final • Last updated',
                     iconURL: interaction.guild.iconURL({ dynamic: true })
                 })
                 .setTimestamp();
-
-            if (bannerUrl) {
-                rulesEmbed.setImage(bannerUrl);
-            }
 
             await interaction.channel.send({ embeds: [rulesEmbed] });
 
