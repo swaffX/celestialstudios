@@ -144,6 +144,18 @@ const guildSchema = new mongoose.Schema({
         discussion: { type: String, default: null } // Optional general chat
     },
 
+    // Suggestions System
+    suggestions: {
+        enabled: { type: Boolean, default: false },
+        categoryId: { type: String, default: null },
+        panelChannelId: { type: String, default: null },
+        panelMessageId: { type: String, default: null },
+        serverSuggestionsChannelId: { type: String, default: null },
+        skillGiveawaySuggestionsChannelId: { type: String, default: null },
+        reviewRoles: [{ type: String }],
+        counter: { type: Number, default: 0 }
+    },
+
     // Stats
     totalGiveaways: { type: Number, default: 0 },
     totalTickets: { type: Number, default: 0 }

@@ -229,6 +229,13 @@ module.exports = {
                     return;
                 }
 
+                // Suggestion Button
+                if (interaction.customId === 'suggestion_create') {
+                    const { showCategorySelect } = require('../handlers/suggestionsHandler');
+                    await showCategorySelect(interaction);
+                    return;
+                }
+
             } catch (error) {
                 logger.error('Error handling button interaction:', error);
 
@@ -344,6 +351,14 @@ module.exports = {
                     }
                     return;
                 }
+
+                // Suggestion Category Select
+                if (interaction.customId === 'suggestion_category_select') {
+                    const { showSuggestionModal } = require('../handlers/suggestionsHandler');
+                    const category = interaction.values[0];
+                    await showSuggestionModal(interaction, category);
+                    return;
+                }
             } catch (error) {
                 logger.error('Error handling select menu:', error);
             }
@@ -363,6 +378,13 @@ module.exports = {
                 if (interaction.customId.startsWith('modal_mpl_')) {
                     const { handleSubmission } = require('../handlers/marketplaceHandler');
                     await handleSubmission(interaction, client);
+                }
+
+                // Suggestion Modals
+                if (interaction.customId.startsWith('suggestion_modal_')) {
+                    const { handleSuggestionSubmit } = require('../handlers/suggestionsHandler');
+                    const category = interaction.customId.replace('suggestion_modal_', '');
+                    await handleSuggestionSubmit(interaction, category);
                 }
             } catch (error) {
                 logger.error('Error handling modal:', error);
