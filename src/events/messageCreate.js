@@ -20,7 +20,7 @@ module.exports = {
             const guildSettings = await Guild.findOrCreate(message.guild.id);
 
             // Check if leveling is enabled
-            if (!guildSettings.features.leveling) return;
+            if (!guildSettings.levelSystem?.enabled && !guildSettings.features?.leveling) return;
 
             // Get or create user
             const userData = await User.findOrCreate(message.author.id, message.guild.id);

@@ -55,7 +55,7 @@ module.exports = {
                 { name: '🎤 Voice Time', value: `${voiceHours}h ${voiceMinutes}m`, inline: true },
                 { name: '🔥 Streak', value: `${userData.currentStreak} days`, inline: true },
                 { name: '🏅 Badges', value: `${userData.badges.length}`, inline: true },
-                { name: '📨 Invites', value: `${userData.invites + userData.bonusInvites}`, inline: true },
+                { name: '📨 Invites', value: `${(userData.invites?.regular || 0) + (userData.invites?.bonus || 0)}`, inline: true },
                 { name: '🎁 Giveaways Won', value: `${userData.giveawaysWon}`, inline: true }
             )
             .setFooter({ text: `Daily XP: ${userData.dailyXp}/${config.leveling.dailyXpLimit}` })
