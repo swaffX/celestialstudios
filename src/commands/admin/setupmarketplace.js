@@ -16,48 +16,33 @@ module.exports = {
             const guildSettings = await Guild.findOrCreate(interaction.guild.id);
             const guild = interaction.guild;
 
-            // 1. Create Category
-            let category = guild.channels.cache.find(c => c.name === 'COMMUNITY HUB' && c.type === ChannelType.GuildCategory);
-            if (!category) {
-                category = await guild.channels.create({
-                    name: 'COMMUNITY HUB',
-                    type: ChannelType.GuildCategory
-                });
-            }
-            guildSettings.marketplace.category = category.id;
-
-            // Helper to create channel if missing
-            const createChannel = async (name, topic) => {
-                let channel = guild.channels.cache.find(c => c.name === name && c.parentId === category.id);
-                if (!channel) {
-                    channel = await guild.channels.create({
-                        name: name,
-                        type: ChannelType.GuildText,
-                        parent: category.id,
-                        topic: topic,
-                        permissionOverwrites: [
-                            {
-                                id: guild.id,
-                                deny: ['SendMessages'], // Only bot sends entry message
-                                allow: ['ViewChannel', 'ReadMessageHistory']
-                            }
-                        ]
-                    });
-                }
-                return channel;
+            // Fixed Channel IDs (Provided by user)
+            const CHANNEL_IDS = {
+                hiring: '1450317069487964336',
+                forHire: '1450317071006171188',
+                portfolios: '1450317072499474432',
+                selling: '1450317073476616276'
             };
 
-            // 2. Create Channels
-            const hiringChannel = await createChannel('hiring', 'Post job offers here.');
-            const forHireChannel = await createChannel('for-hire', 'Looking for work? Post here.');
-            const portfoliosChannel = await createChannel('portfolios', 'Showcase your work. One post per user.');
-            const sellingChannel = await createChannel('selling', 'Sell your assets, scripts, or services here.');
+            // Save settings to ensure handler works
+            guildSettings.marketplace.hiring = CHANNEL_IDS.hiring;
+            guildSettings.marketplace.forHire = CHANNEL_IDS.forHire;
+            guildSettings.marketplace.portfolios = CHANNEL_IDS.portfolios;
+            guildSettings.marketplace.selling = CHANNEL_IDS.selling;
 
-            // Save IDs
-            guildSettings.marketplace.hiring = hiringChannel.id;
-            guildSettings.marketplace.forHire = forHireChannel.id;
-            guildSettings.marketplace.portfolios = portfoliosChannel.id;
-            guildSettings.marketplace.selling = sellingChannel.id;
+            await guildSettings.save();
+
+            // Fetch Channels
+            const hiringChannel = await guild.channels.fetch(CHANNEL_IDS.hiring).catch(() => null);
+            const forHireChannel = await guild.channels.fetch(CHANNEL_IDS.forHire).catch(() => null);
+            const portfoliosChannel = await guild.channels.fetch(CHANNEL_IDS.portfolios).catch(() => null);
+            const sellingChannel = await guild.channels.fetch(CHANNEL_IDS.selling).catch(() => null);
+
+            if (!hiringChannel || !forHireChannel || !portfoliosChannel || !sellingChannel) {
+                return interaction.editReply({
+                    embeds: [embedBuilder.error('Error', 'One or more marketplace channels could not be found via ID. Please check the IDs.')]
+                });
+            }
 
             await guildSettings.save();
 
