@@ -25,6 +25,18 @@ module.exports = {
             // Get or create user
             const userData = await User.findOrCreate(message.author.id, message.guild.id);
 
+            // Migrate old invite schema if needed
+            if (typeof userData.invites === 'number' || !userData.invites) {
+                const oldInvites = typeof userData.invites === 'number' ? userData.invites : 0;
+                userData.invites = {
+                    regular: oldInvites,
+                    bonus: 0,
+                    fake: 0,
+                    left: 0,
+                    total: oldInvites
+                };
+            }
+
             // Increment message count
             userData.totalMessages++;
             userData.lastSeen = new Date();
