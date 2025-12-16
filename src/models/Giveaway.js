@@ -19,6 +19,7 @@ const giveawaySchema = new mongoose.Schema({
     startedAt: { type: Date, default: Date.now },
     endsAt: { type: Date, required: true },
     ended: { type: Boolean, default: false },
+    bannerUrl: { type: String, default: null },
 
     // Entries
     entries: [{ type: String }], // User IDs
