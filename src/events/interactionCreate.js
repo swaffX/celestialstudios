@@ -347,6 +347,12 @@ module.exports = {
                         await ticketCommand.handleModalSubmit(interaction, client);
                     }
                 }
+
+                // Marketplace Modals
+                if (interaction.customId.startsWith('modal_mpl_')) {
+                    const { handleSubmission } = require('../handlers/marketplaceHandler');
+                    await handleSubmission(interaction, client);
+                }
             } catch (error) {
                 logger.error('Error handling modal:', error);
             }
