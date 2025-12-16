@@ -5,29 +5,14 @@ const Guild = require('../../models/Guild');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setupwelcome')
-        .setDescription('Setup welcome system with auto channel creation')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-        .addStringOption(option =>
-            option.setName('welcome_message')
-                .setDescription('Custom welcome message ({user} = mention, {server} = server name, {count} = member count)')
-                .setRequired(false))
-        .addStringOption(option =>
-            option.setName('farewell_message')
-                .setDescription('Custom farewell message')
-                .setRequired(false))
-        .addStringOption(option =>
-            option.setName('banner_url')
-                .setDescription('Welcome banner image URL')
-                .setRequired(false)),
+        .setDescription('Setup welcome system (auto-creates channels with premium embeds)')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             const guild = interaction.guild;
-            const welcomeMessage = interaction.options.getString('welcome_message') || 'Welcome to **{server}**, {user}! You are member #{count}! 🎉';
-            const farewellMessage = interaction.options.getString('farewell_message') || 'Goodbye **{username}**! We hope to see you again! 👋';
-            const bannerUrl = interaction.options.getString('banner_url');
 
             // Create WELCOME category
             let welcomeCategory = guild.channels.cache.find(
@@ -89,26 +74,27 @@ module.exports = {
                     'welcomeSystem.welcomeChannelId': welcomeChannel.id,
                     'welcomeSystem.farewellChannelId': farewellChannel.id,
                     'welcomeSystem.invitesChannelId': invitesChannel.id,
-                    'welcomeSystem.categoryId': welcomeCategory.id,
-                    'welcomeSystem.welcomeMessage': welcomeMessage,
-                    'welcomeSystem.farewellMessage': farewellMessage,
-                    'welcomeSystem.bannerUrl': bannerUrl || null
+                    'welcomeSystem.categoryId': welcomeCategory.id
                 },
                 { upsert: true }
             );
 
-            // Send setup info embed to welcome channel
+            // Send setup confirmation to welcome channel
             const setupEmbed = new EmbedBuilder()
-                .setColor('#5865F2')
-                .setTitle('👋 Welcome System Configured!')
+                .setColor('#43B581')
+                .setTitle('✅ Welcome System Active')
                 .setDescription(
-                    `> This channel will display welcome messages.\n\n` +
-                    `**Preview:**\n${welcomeMessage.replace('{user}', `<@${interaction.user.id}>`).replace('{server}', guild.name).replace('{count}', guild.memberCount)}`
+                    `> Premium welcome embeds are now active!\n\n` +
+                    `When someone joins, they'll see a beautiful embed with:\n` +
+                    `• Their avatar & username\n` +
+                    `• Account age\n` +
+                    `• Member count\n` +
+                    `• Custom banner`
                 )
-                .setFooter({ text: 'Welcome System • Active', iconURL: guild.iconURL({ dynamic: true }) })
+                .setImage('https://cdn.discordapp.com/attachments/531892263652032522/1450318087948603486/Gemini_Generated_Image_mhflenmhflenmhfl.png')
+                .setFooter({ text: 'Welcome System • Configured', iconURL: guild.iconURL({ dynamic: true }) })
                 .setTimestamp();
 
-            if (bannerUrl) setupEmbed.setImage(bannerUrl);
             await welcomeChannel.send({ embeds: [setupEmbed] });
 
             // Send info to invites channel
@@ -126,15 +112,17 @@ module.exports = {
 
             const successEmbed = new EmbedBuilder()
                 .setColor('#2ecc71')
-                .setTitle('✅ Welcome System Setup Complete!')
+                .setTitle('✅ Welcome System Ready!')
                 .setDescription(
                     `**Channels Created:**\n` +
                     `> 👋 Welcome: ${welcomeChannel}\n` +
                     `> 👋 Farewell: ${farewellChannel}\n` +
                     `> 📨 Invites: ${invitesChannel}\n\n` +
-                    `**Messages:**\n` +
-                    `> Welcome: \`${welcomeMessage.substring(0, 50)}...\`\n` +
-                    `> Farewell: \`${farewellMessage.substring(0, 50)}...\``
+                    `**Features:**\n` +
+                    `> ✨ Premium welcome embeds\n` +
+                    `> ✨ Farewell embeds\n` +
+                    `> ✨ Invite tracking\n` +
+                    `> ✨ Member count display`
                 )
                 .setFooter({ text: 'All channels are under the WELCOME category' })
                 .setTimestamp();
