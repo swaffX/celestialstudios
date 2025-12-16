@@ -22,21 +22,22 @@ module.exports = {
             // Check if leveling is enabled
             if (!guildSettings.levelSystem?.enabled && !guildSettings.features?.leveling) return;
 
-            // Get or create user
-            let userData = await User.findOrCreate(message.author.id, message.guild.id);
+            // First check RAW data to see if migration is needed (bypass Mongoose casting)
+            const rawUser = await User.findOne({ odasi: message.author.id, odaId: message.guild.id }).lean();
 
-            // Migrate old invite schema if needed (use raw MongoDB to avoid type conflict)
-            if (typeof userData.invites === 'number' || !userData.invites || !userData.invites.regular === undefined) {
-                const oldInvites = typeof userData.invites === 'number' ? userData.invites : 0;
-                // Use raw updateOne with $unset then $set to change field type
+            if (rawUser && (typeof rawUser.invites === 'number' || rawUser.invites === undefined)) {
+
+                const oldInvites = typeof rawUser.invites === 'number' ? rawUser.invites : 0;
+
+                // 1. Unset the old field
                 await User.updateOne(
-                    { odasi: message.author.id, odaId: message.guild.id },
-                    {
-                        $unset: { invites: 1 }
-                    }
+                    { _id: rawUser._id },
+                    { $unset: { invites: 1 } }
                 );
+
+                // 2. Set the new object structure
                 await User.updateOne(
-                    { odasi: message.author.id, odaId: message.guild.id },
+                    { _id: rawUser._id },
                     {
                         $set: {
                             invites: {
@@ -49,9 +50,10 @@ module.exports = {
                         }
                     }
                 );
-                // Re-fetch the user after migration
-                userData = await User.findOne({ odasi: message.author.id, odaId: message.guild.id });
             }
+
+            // Get or create user (it will now be clean)
+            let userData = await User.findOrCreate(message.author.id, message.guild.id);
 
             // Increment message count
             userData.totalMessages++;
