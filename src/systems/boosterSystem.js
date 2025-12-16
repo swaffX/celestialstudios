@@ -156,11 +156,17 @@ async function updateBoosterEmbed(guild, channelId, bannerUrl = null) {
                     return existingMessage;
                 }
             } catch (err) {
-                // Message not found, create new one
-                await Guild.findOneAndUpdate(
-                    { guildId: guild.id },
-                    { 'boosterSystem.messageId': null }
-                );
+                // Only create new message if the old one is truly gone (Unknown Message)
+                if (err.code === 10008) {
+                    await Guild.findOneAndUpdate(
+                        { guildId: guild.id },
+                        { 'boosterSystem.messageId': null }
+                    );
+                } else {
+                    // Start-up network glitches or other errors - don't duplicate
+                    logger.warn(`Failed to fetch booster message: ${err.message}`);
+                    return null;
+                }
             }
         }
 

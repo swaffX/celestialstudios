@@ -57,11 +57,17 @@ async function updateAllStatsEmbeds(client) {
                         continue;
                     }
                 } catch (err) {
-                    // Message not found, create new one
-                    await Guild.findOneAndUpdate(
-                        { guildId: guild.id },
-                        { 'statsEmbed.messageId': null }
-                    );
+                    // Only create new message if the old one is truly gone (Unknown Message)
+                    if (err.code === 10008) {
+                        await Guild.findOneAndUpdate(
+                            { guildId: guild.id },
+                            { 'statsEmbed.messageId': null }
+                        );
+                    } else {
+                        // Start-up network glitches or other errors - don't duplicate
+                        logger.warn(`Failed to fetch stats embed: ${err.message}`);
+                        continue;
+                    }
                 }
             }
 
