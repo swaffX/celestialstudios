@@ -236,6 +236,26 @@ module.exports = {
                     return;
                 }
 
+                // Application Button
+                if (interaction.customId === 'application_create') {
+                    const { showApplicationModal } = require('../handlers/applicationsHandler');
+                    await showApplicationModal(interaction);
+                    return;
+                }
+
+                // Application Decision Buttons (accept/reject/interview)
+                if (interaction.customId.startsWith('app_accept_') ||
+                    interaction.customId.startsWith('app_reject_') ||
+                    interaction.customId.startsWith('app_interview_')) {
+                    const { handleApplicationDecision } = require('../handlers/applicationsHandler');
+                    const parts = interaction.customId.split('_');
+                    const action = parts[1]; // accept, reject, or interview
+                    const odasi = parts[2];
+                    const appNumber = parts[3];
+                    await handleApplicationDecision(interaction, action, odasi, appNumber);
+                    return;
+                }
+
             } catch (error) {
                 logger.error('Error handling button interaction:', error);
 
@@ -385,6 +405,12 @@ module.exports = {
                     const { handleSuggestionSubmit } = require('../handlers/suggestionsHandler');
                     const category = interaction.customId.replace('suggestion_modal_', '');
                     await handleSuggestionSubmit(interaction, category);
+                }
+
+                // Application Modal
+                if (interaction.customId === 'application_modal') {
+                    const { handleApplicationSubmit } = require('../handlers/applicationsHandler');
+                    await handleApplicationSubmit(interaction);
                 }
             } catch (error) {
                 logger.error('Error handling modal:', error);

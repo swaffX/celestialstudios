@@ -156,6 +156,27 @@ const guildSchema = new mongoose.Schema({
         counter: { type: Number, default: 0 }
     },
 
+    // Staff Applications System
+    applications: {
+        enabled: { type: Boolean, default: false },
+        categoryId: { type: String, default: null },
+        panelChannelId: { type: String, default: null },
+        panelMessageId: { type: String, default: null },
+        reviewChannelId: { type: String, default: null },
+        acceptedRoleId: { type: String, default: null },
+        counter: { type: Number, default: 0 }
+    },
+
+    // Invite Rewards System
+    inviteRewards: {
+        enabled: { type: Boolean, default: false },
+        milestones: [{
+            invites: { type: Number, required: true },
+            roleId: { type: String, required: true },
+            name: { type: String }
+        }]
+    },
+
     // Stats
     totalGiveaways: { type: Number, default: 0 },
     totalTickets: { type: Number, default: 0 }

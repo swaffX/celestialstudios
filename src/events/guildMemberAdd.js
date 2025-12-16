@@ -169,6 +169,32 @@ module.exports = {
 
                 await userData.save();
 
+                // Check invite milestones for rewards
+                if (guildSettings.inviteRewards?.enabled && guildSettings.inviteRewards.milestones?.length > 0) {
+                    const totalInvites = userData.invites.regular + userData.invites.bonus;
+
+                    for (const milestone of guildSettings.inviteRewards.milestones) {
+                        if (totalInvites >= milestone.invites) {
+                            try {
+                                const inviterMember = await member.guild.members.fetch(inviter.id);
+                                if (inviterMember && !inviterMember.roles.cache.has(milestone.roleId)) {
+                                    await inviterMember.roles.add(milestone.roleId);
+                                    logger.info(`Awarded ${milestone.name} to ${inviter.tag} for ${milestone.invites} invites`);
+
+                                    // DM the inviter about their reward
+                                    try {
+                                        await inviterMember.send(
+                                            `🎉 **Congratulations!** You earned the **${milestone.name}** role for reaching **${milestone.invites} invites** in **${member.guild.name}**!`
+                                        );
+                                    } catch (e) { /* DMs closed */ }
+                                }
+                            } catch (e) {
+                                logger.error('Failed to assign invite reward role:', e);
+                            }
+                        }
+                    }
+                }
+
                 inviterCount = (userData.invites.regular + userData.invites.bonus) - userData.invites.left - userData.invites.fake;
             }
 
