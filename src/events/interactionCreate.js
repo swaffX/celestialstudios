@@ -40,8 +40,10 @@ const helpCategories = {
     },
     setup: {
         emoji: '⚙️', name: 'Setup', color: '#2ecc71', commands: [
-            { name: '/setwelcome', desc: 'Set welcome channel' },
-            { name: '/setfarewell', desc: 'Set farewell channel' },
+            { name: '/setupwelcome', desc: 'Auto-create welcome system' },
+            { name: '/setupgiveaway', desc: 'Auto-create giveaway channel' },
+            { name: '/setupmarketplace', desc: 'Create marketplace channels' },
+            { name: '/setuplevel', desc: 'Setup leveling system' },
             { name: '/setuplogs', desc: 'Setup log channels' },
             { name: '/setupinfo', desc: 'Create info center' },
             { name: '/setuprules', desc: 'Create rules embed' },
@@ -53,8 +55,17 @@ const helpCategories = {
     tickets: {
         emoji: '🎫', name: 'Tickets', color: '#1abc9c', commands: [
             { name: '/ticket setup', desc: 'Setup ticket system' },
+            { name: '/ticket support-role', desc: 'Add/remove support roles' },
             { name: '/ticket close', desc: 'Close a ticket' },
             { name: '/ticket add', desc: 'Add user to ticket' }
+        ]
+    },
+    marketplace: {
+        emoji: '🛒', name: 'Marketplace', color: '#f1c40f', commands: [
+            { name: 'Hiring', desc: 'Post job offers' },
+            { name: 'For Hire', desc: 'Offer your services' },
+            { name: 'Portfolios', desc: 'Showcase your work' },
+            { name: 'Selling', desc: 'Sell your assets' }
         ]
     },
     utility: {
