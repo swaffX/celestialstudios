@@ -1,4 +1,4 @@
-const Jimp = require('jimp');
+const { Jimp } = require('jimp');
 const { AttachmentBuilder } = require('discord.js');
 
 /**
