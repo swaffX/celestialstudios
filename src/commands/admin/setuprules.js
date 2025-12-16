@@ -20,7 +20,7 @@ module.exports = {
                     iconURL: interaction.guild.iconURL({ dynamic: true })
                 })
                 .setTitle('📜 Server Rules')
-                .setDescription(
+
                 .addFields(
                     {
                         name: '📋 General Conduct',
