@@ -40,11 +40,15 @@ const userSchema = new mongoose.Schema({
     }],
 
     // Invite System
-    invites: { type: Number, default: 0 },           // Successful invites
+    invites: {
+        total: { type: Number, default: 0 },      // regular + bonus (tracked)
+        regular: { type: Number, default: 0 },    // Real people currently in server
+        fake: { type: Number, default: 0 },       // Suspicious accounts
+        bonus: { type: Number, default: 0 },      // Added by admins
+        left: { type: Number, default: 0 }        // People who left
+    },
     invitedBy: { type: String, default: null },      // Who invited this user
     inviteCode: { type: String, default: null },     // Which invite code was used
-    fakeInvites: { type: Number, default: 0 },       // Left after joining
-    bonusInvites: { type: Number, default: 0 },      // Bonus invites given by admin
 
     // Timestamps
     joinedAt: { type: Date, default: Date.now },

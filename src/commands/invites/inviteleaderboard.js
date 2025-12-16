@@ -27,11 +27,12 @@ module.exports = {
         const validPage = Math.min(Math.max(page, 1), totalPages);
 
         // Get users for this page (sorted by invites)
+        // Get users for this page (sorted by total raw invites for now)
         const users = await User.find({
             odaId: interaction.guild.id,
-            invites: { $gt: 0 }
+            'invites.total': { $gt: 0 }
         })
-            .sort({ invites: -1 })
+            .sort({ 'invites.total': -1 })
             .skip((validPage - 1) * perPage)
             .limit(perPage);
 
@@ -46,6 +47,9 @@ module.exports = {
         for (let i = 0; i < users.length; i++) {
             const user = users[i];
             const position = (validPage - 1) * perPage + i + 1;
+
+            // Migration check
+            if (typeof user.invites === 'number') continue;
 
             // Get medal for top 3
             let medal = '';
@@ -63,10 +67,15 @@ module.exports = {
                 // User might have left
             }
 
-            const totalInvites = user.invites + user.bonusInvites;
-            const specialAccess = totalInvites >= config.invites.specialGiveawayMinInvites ? '⭐' : '';
+            const regular = user.invites.regular || 0;
+            const bonus = user.invites.bonus || 0;
+            const fake = user.invites.fake || 0;
+            const left = user.invites.left || 0;
+            const net = (regular + bonus) - (fake + left);
 
-            leaderboardText.push(`${medal} **${username}** ${specialAccess}\n└ ✅ ${user.invites} | ❌ ${user.fakeInvites} | 🎁 ${user.bonusInvites}`);
+            const specialAccess = net >= config.invites.specialGiveawayMinInvites ? '⭐' : '';
+
+            leaderboardText.push(`${medal} **${username}** ${specialAccess}\n└ **${net}** Real • ✅ ${regular} | 🎁 ${bonus} | ❌ ${fake + left} (Left/Fake)`);
         }
 
         const embed = new EmbedBuilder()

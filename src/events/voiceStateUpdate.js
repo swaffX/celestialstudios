@@ -74,5 +74,57 @@ module.exports = {
         } catch (error) {
             logger.error('Error in voiceStateUpdate event:', error);
         }
+
+        // === VOICE LOGGING ===
+        try {
+            const guildSettings = await require('../models/Guild').findOne({ guildId: guildId });
+            if (!guildSettings?.logs?.enabled || !guildSettings.logs.channels.voice) return;
+
+            const logChannel = newState.guild.channels.cache.get(guildSettings.logs.channels.voice);
+            if (!logChannel) return;
+
+            const EmbedBuilder = require('discord.js').EmbedBuilder;
+            const member = newState.member;
+
+            // Use member.user.tag for consistency
+            const userTag = member.user.tag;
+            const avatar = member.user.displayAvatarURL();
+
+            // Joined
+            if (!oldState.channelId && newState.channelId) {
+                const embed = new EmbedBuilder()
+                    .setColor('#2ecc71')
+                    .setAuthor({ name: userTag, iconURL: avatar })
+                    .setDescription(`📥 **Joined voice channel** <#${newState.channelId}>`)
+                    .setFooter({ text: `User ID: ${member.id}` })
+                    .setTimestamp();
+                await logChannel.send({ embeds: [embed] });
+            }
+
+            // Left
+            else if (oldState.channelId && !newState.channelId) {
+                const embed = new EmbedBuilder()
+                    .setColor('#e74c3c')
+                    .setAuthor({ name: userTag, iconURL: avatar })
+                    .setDescription(`📤 **Left voice channel** <#${oldState.channelId}>`)
+                    .setFooter({ text: `User ID: ${member.id}` })
+                    .setTimestamp();
+                await logChannel.send({ embeds: [embed] });
+            }
+
+            // Switched
+            else if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
+                const embed = new EmbedBuilder()
+                    .setColor('#f1c40f')
+                    .setAuthor({ name: userTag, iconURL: avatar })
+                    .setDescription(`🔄 **Switched voice channel**\nFrom: <#${oldState.channelId}>\nTo: <#${newState.channelId}>`)
+                    .setFooter({ text: `User ID: ${member.id}` })
+                    .setTimestamp();
+                await logChannel.send({ embeds: [embed] });
+            }
+
+        } catch (error) {
+            logger.error('Error logging voice state:', error);
+        }
     }
 };

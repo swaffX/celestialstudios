@@ -67,14 +67,16 @@ module.exports = {
                     const invitesChannel = await member.guild.channels.fetch(guildSettings.welcomeSystem.invitesChannelId);
                     if (invitesChannel) {
                         const inviter = inviteData.inviter;
+                        const isFake = inviteData.isNewMemberFake;
 
                         const embed = new EmbedBuilder()
-                            .setColor('#9b59b6')
+                            .setColor(isFake ? '#e74c3c' : '#9b59b6')
                             .setAuthor({ name: 'New Member Joined', iconURL: member.user.displayAvatarURL({ dynamic: true }) })
                             .setDescription(
                                 `**${member.user.tag}** joined the server!\n` +
                                 `> Invited by: ${inviter ? `${inviter} (\`${inviter.tag}\`)` : 'Unknown / Vanity / Bot'}\n` +
-                                `> Total Invites: ${inviteData.inviterCount || 0}`
+                                `> Invites: **${inviteData.inviterCount || 0}**\n` +
+                                `${isFake ? '⚠️ **Flagged as Fake Attempt** (Account < 7 days)' : ''}`
                             )
                             .setFooter({ text: `Member #${member.guild.memberCount}` })
                             .setTimestamp();
@@ -122,14 +124,17 @@ module.exports = {
             if (usedInvite) {
                 inviter = usedInvite.inviter;
 
-                // Update user stats
-                let userData = await User.findOne({ odasi: inviter.id, odaId: member.guild.id });
-                if (!userData) {
-                    userData = await User.create({ odasi: inviter.id, odaId: member.guild.id });
-                }
+                const now = Date.now();
+                const accountAge = now - member.user.createdTimestamp;
+                const isFake = accountAge < (1000 * 60 * 60 * 24 * 7); // 7 days
 
-                userData.invites.total++;
-                userData.invites.regular++;
+                if (isFake) {
+                    userData.invites.fake++;
+                    userData.invites.total++; // Total tracks raw count
+                } else {
+                    userData.invites.regular++;
+                    userData.invites.total++;
+                }
 
                 // Track who invited this member
                 let newMemberData = await User.findOne({ odasi: member.id, odaId: member.guild.id });
@@ -139,16 +144,20 @@ module.exports = {
                 newMemberData.invitedBy = inviter.id;
                 await newMemberData.save();
 
-                // Bonus XP for inviter
-                userData.xp += 100;
+                // Bonus XP for inviter (only for valid invites)
+                if (!isFake) {
+                    userData.xp += 100;
+                }
 
                 await userData.save();
 
-                inviterCount = userData.invites.total + (userData.invites.bonus || 0);
+                inviterCount = (userData.invites.regular + userData.invites.bonus) - userData.invites.left - userData.invites.fake;
             }
 
             // Update cache
             inviteCreateEvent.setInvites(member.guild.id, guildInvites);
+
+            return { inviter, inviterCount, isNewMemberFake: inviter && (Date.now() - member.user.createdTimestamp < (1000 * 60 * 60 * 24 * 7)) };
 
         } catch (error) {
             logger.error('Error tracking invite:', error);

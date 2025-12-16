@@ -51,17 +51,15 @@ module.exports = {
                 const inviterData = await User.findOne({ odasi: inviterId, odaId: member.guild.id });
 
                 if (inviterData) {
-                    // It was a fake invite (user left)
-                    inviterData.invites.fake++;
-                    if (inviterData.invites.regular > 0) {
-                        inviterData.invites.regular--;
-                    }
-                    if (inviterData.invites.total > 0) {
-                        inviterData.invites.total--;
-                    }
+                    // Update stats
+                    inviterData.invites.left++;
+                    // Optional: You could decrement regular if you want 'regular' to ONLY represent 'current' members
+                    // But usually keeping 'regular' as 'total valid joins' and 'left' as 'leaves' allows better analytics.
+                    // We'll calculate NET invites when displaying.
+
                     await inviterData.save();
 
-                    logger.info(`Fake invite detected: ${member.user.tag} left, inviter: ${inviterId}`);
+                    logger.info(`Member left: ${member.user.tag} (invited by ${inviterId})`);
                 }
             }
 

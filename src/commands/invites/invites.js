@@ -30,11 +30,20 @@ module.exports = {
             });
         }
 
-        // Calculate real invites (total - fake + bonus)
-        const realInvites = userData.invites;
-        const fakeInvites = userData.fakeInvites;
-        const bonusInvites = userData.bonusInvites;
-        const totalInvites = realInvites + bonusInvites;
+        // Initialize if needed (migration support)
+        if (typeof userData.invites === 'number') {
+            userData.invites = { total: userData.invites, regular: userData.invites, fake: 0, bonus: 0, left: 0 };
+            await userData.save();
+        }
+
+        // Calculate stats
+        const regular = userData.invites.regular || 0;
+        const fake = userData.invites.fake || 0;
+        const bonus = userData.invites.bonus || 0;
+        const left = userData.invites.left || 0;
+
+        // NET Invites = Regular + Bonus - Fake - Leaves
+        const totalInvites = (regular + bonus) - (fake + left);
 
         // Check if eligible for special giveaways
         const isEligible = totalInvites >= config.invites.specialGiveawayMinInvites;
@@ -61,22 +70,22 @@ module.exports = {
             .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
             .addFields(
                 {
-                    name: '✅ Valid Invites',
-                    value: `\`${realInvites}\``,
+                    name: '✅ Regular',
+                    value: `\`${regular}\``,
                     inline: true
                 },
                 {
-                    name: '❌ Fake Invites',
-                    value: `\`${fakeInvites}\``,
+                    name: '🎁 Bonus',
+                    value: `\`${bonus}\``,
                     inline: true
                 },
                 {
-                    name: '🎁 Bonus Invites',
-                    value: `\`${bonusInvites}\``,
+                    name: '❌ Left/Fake',
+                    value: `\`${left + fake}\``,
                     inline: true
                 },
                 {
-                    name: '📊 Total',
+                    name: '📊 Net Total',
                     value: `\`${totalInvites}\``,
                     inline: true
                 },
