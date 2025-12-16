@@ -29,7 +29,10 @@ const client = new Client({
         Partials.Reaction,
         Partials.User,
         Partials.GuildMember
-    ]
+    ],
+    rest: {
+        timeout: 60_000, // 60s request timeout
+    }
 });
 
 // Collections

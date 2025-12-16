@@ -47,19 +47,28 @@ module.exports = {
 
             // Check level up
             if (result.leveledUp) {
-                // Send level up notification
+                // Send level up notification with retry
                 if (guildSettings.levelChannel) {
-                    try {
-                        const channel = await client.channels.fetch(guildSettings.levelChannel);
-                        if (channel) {
-                            const embed = embedBuilder.levelUp(message.author, result.newLevel);
-                            await channel.send({
-                                content: `${message.author}`,
-                                embeds: [embed]
-                            });
+                    let retries = 3;
+                    while (retries > 0) {
+                        try {
+                            const channel = await client.channels.fetch(guildSettings.levelChannel);
+                            if (channel) {
+                                const embed = embedBuilder.levelUp(message.author, result.newLevel);
+                                await channel.send({
+                                    content: `${message.author}`,
+                                    embeds: [embed]
+                                });
+                                break; // Success, exit loop
+                            }
+                        } catch (error) {
+                            retries--;
+                            if (retries === 0) {
+                                logger.error('Failed to send level up notification after retries:', error);
+                            } else {
+                                await new Promise(res => setTimeout(res, 2000)); // Wait 2s before retry
+                            }
                         }
-                    } catch (error) {
-                        logger.error('Failed to send level up notification:', error);
                     }
                 }
 
