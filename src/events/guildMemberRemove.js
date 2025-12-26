@@ -66,11 +66,11 @@ module.exports = {
 
             // === FAKE INVITE CHECK & PENALTY ===
             // Check if user was invited by someone
-            const leavingUserData = await User.findOne({ odasi: member.id, odaId: member.guild.id });
+            const leavingUserData = await User.findOne({ userId: member.id, guildId: member.guild.id });
 
             if (leavingUserData && leavingUserData.invitedBy) {
                 const inviterId = leavingUserData.invitedBy;
-                const inviterData = await User.findOne({ odasi: inviterId, odaId: member.guild.id });
+                const inviterData = await User.findOne({ userId: inviterId, guildId: member.guild.id });
 
                 if (inviterData) {
                     // Update stats

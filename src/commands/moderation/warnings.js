@@ -16,8 +16,8 @@ module.exports = {
         const targetUser = interaction.options.getUser('user');
 
         const userData = await User.findOne({
-            odasi: targetUser.id,
-            odaId: interaction.guild.id
+            userId: targetUser.id,
+            guildId: interaction.guild.id
         });
 
         if (!userData || userData.warnings.length === 0) {

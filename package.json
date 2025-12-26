@@ -1,11 +1,14 @@
 {
   "name": "celestial-studios-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Advanced Discord bot for Roblox anime game developers community - featuring leveling, giveaways, achievements, and moderation",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "migrate": "node scripts/migrate-fields.js"
   },
   "keywords": [
     "discord",
@@ -27,6 +30,7 @@
     "undici": "^7.16.0"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^3.0.2"
   },
   "engines": {

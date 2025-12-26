@@ -19,14 +19,14 @@ module.exports = {
 
         // Get user data
         let userData = await User.findOne({
-            odasi: targetUser.id,
-            odaId: interaction.guild.id
+            userId: targetUser.id,
+            guildId: interaction.guild.id
         });
 
         if (!userData) {
             userData = await User.create({
-                odasi: targetUser.id,
-                odaId: interaction.guild.id
+                userId: targetUser.id,
+                guildId: interaction.guild.id
             });
         }
 
@@ -49,9 +49,9 @@ module.exports = {
         const isEligible = totalInvites >= config.invites.specialGiveawayMinInvites;
 
         // Get leaderboard position
-        const allUsers = await User.find({ odaId: interaction.guild.id })
+        const allUsers = await User.find({ guildId: interaction.guild.id })
             .sort({ invites: -1 });
-        const rank = allUsers.findIndex(u => u.odasi === targetUser.id) + 1;
+        const rank = allUsers.findIndex(u => u.userId === targetUser.id) + 1;
 
         // Get who invited this user
         let invitedByText = 'Unknown';

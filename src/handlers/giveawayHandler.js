@@ -130,8 +130,8 @@ class GiveawayHandler {
         // Check requirements
         const member = interaction.member;
         const userData = await User.findOne({
-            odasi: userId,
-            odaId: interaction.guild.id
+            userId: odaUserId,
+            guildId: interaction.guild.id
         });
 
         const { eligible, reason } = await giveaway.checkRequirements(member, userData);
@@ -214,17 +214,17 @@ class GiveawayHandler {
                 });
 
                 // Update winner stats and check achievements
-                for (const odasi of winners) {
-                    let userData = await User.findOne({ odasi, odaId: giveaway.guildId });
+                for (const odaUserId of winners) {
+                    let userData = await User.findOne({ userId: odaUserId, guildId: giveaway.guildId });
                     if (!userData) {
-                        userData = await User.create({ odasi, odaId: giveaway.guildId });
+                        userData = await User.create({ userId: odaUserId, guildId: giveaway.guildId });
                     }
                     userData.giveawaysWon++;
                     await userData.save();
 
                     // Check achievements
                     try {
-                        const member = await channel.guild.members.fetch(odasi);
+                        const member = await channel.guild.members.fetch(odaUserId);
                         await achievementChecker.check(userData, this.client, member);
                     } catch (e) {
                         // Member might have left
@@ -232,7 +232,7 @@ class GiveawayHandler {
 
                     // Send DM to winner
                     try {
-                        const winner = await this.client.users.fetch(odasi);
+                        const winner = await this.client.users.fetch(odaUserId);
                         await winner.send({
                             content: `🎉 Congratulations! You won **${giveaway.prize}** in **${channel.guild.name}**!\n${message.url}`
                         });

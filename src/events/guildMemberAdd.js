@@ -167,9 +167,9 @@ module.exports = {
                 }
 
                 // Track who invited this member
-                let newMemberData = await User.findOne({ odasi: member.id, odaId: member.guild.id });
+                let newMemberData = await User.findOne({ userId: member.id, guildId: member.guild.id });
                 if (!newMemberData) {
-                    newMemberData = await User.create({ odasi: member.id, odaId: member.guild.id });
+                    newMemberData = await User.create({ userId: member.id, guildId: member.guild.id });
                 }
                 newMemberData.invitedBy = inviter.id;
                 await newMemberData.save();

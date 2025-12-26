@@ -99,7 +99,7 @@ async function handleApplicationSubmit(interaction) {
 
         // Get user stats
         const User = require('../models/User');
-        const userData = await User.findOne({ odasi: user.id, odaId: guild.id });
+        const userData = await User.findOne({ userId: user.id, guildId: guild.id });
 
         const joinedAt = Math.floor(member.joinedTimestamp / 1000);
         const createdAt = Math.floor(user.createdTimestamp / 1000);
@@ -173,7 +173,7 @@ async function handleApplicationSubmit(interaction) {
 /**
  * Handle application decision (accept/reject/interview)
  */
-async function handleApplicationDecision(interaction, action, odasi, appNumber) {
+async function handleApplicationDecision(interaction, action, odaUserId, appNumber) {
     const { guild, user: reviewer } = interaction;
 
     const guildSettings = await Guild.findOne({ guildId: guild.id });
@@ -186,7 +186,7 @@ async function handleApplicationDecision(interaction, action, odasi, appNumber) 
     }
 
     try {
-        const applicant = await guild.members.fetch(odasi).catch(() => null);
+        const applicant = await guild.members.fetch(odaUserId).catch(() => null);
 
         if (!applicant) {
             // Update embed to show user left

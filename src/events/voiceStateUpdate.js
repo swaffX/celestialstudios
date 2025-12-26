@@ -9,22 +9,22 @@ module.exports = {
     once: false,
 
     async execute(oldState, newState, client) {
-        const odasi = newState.member?.id || oldState.member?.id;
+        const odaUserId = newState.member?.id || oldState.member?.id;
         const guildId = newState.guild?.id || oldState.guild?.id;
 
-        if (!odasi || !guildId) return;
+        if (!odaUserId || !guildId) return;
 
         try {
             // User joined a voice channel
             if (!oldState.channelId && newState.channelId) {
                 // Start tracking voice time
-                client.voiceStates.set(`${odasi}-${guildId}`, Date.now());
+                client.voiceStates.set(`${odaUserId}-${guildId}`, Date.now());
                 logger.debug(`${newState.member.user.tag} joined voice channel`);
             }
 
             // User left a voice channel
             if (oldState.channelId && !newState.channelId) {
-                const joinTime = client.voiceStates.get(`${odasi}-${guildId}`);
+                const joinTime = client.voiceStates.get(`${odaUserId}-${guildId}`);
 
                 if (joinTime) {
                     const duration = Date.now() - joinTime;
@@ -35,9 +35,9 @@ module.exports = {
                         const cappedMinutes = Math.min(minutes, config.leveling.voiceMaxMinutesPerHour);
 
                         // Get or create user
-                        let userData = await User.findOne({ odasi, odaId: guildId });
+                        let userData = await User.findOne({ userId: odaUserId, guildId: guildId });
                         if (!userData) {
-                            userData = await User.create({ odasi, odaId: guildId });
+                            userData = await User.create({ userId: odaUserId, guildId: guildId });
                         }
 
                         // Add voice time
@@ -60,7 +60,7 @@ module.exports = {
                     }
 
                     // Clean up tracking
-                    client.voiceStates.delete(`${odasi}-${guildId}`);
+                    client.voiceStates.delete(`${odaUserId}-${guildId}`);
                 }
             }
 

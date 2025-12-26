@@ -2,6 +2,8 @@ const { Events, EmbedBuilder, MessageFlags } = require('discord.js');
 const logger = require('../utils/logger');
 const embedBuilder = require('../utils/embedBuilder');
 const { handleStatsButton } = require('../systems/statsEmbedSystem');
+const { checkRateLimit, getCooldownMessage, RATE_LIMITS } = require('../middleware/rateLimit');
+const { BANNERS } = require('../constants/constants');
 
 // Help categories
 const helpCategories = {
@@ -135,7 +137,7 @@ module.exports = {
 
                 // Help home button
                 if (interaction.customId === 'help_home') {
-                    const HELP_BANNER = 'https://cdn.discordapp.com/attachments/1447262708440236084/1450284176564818063/Gemini_Generated_Image_eyxkuceyxkuceyxk.png';
+                    const HELP_BANNER = BANNERS.HELP;
 
                     const mainEmbed = new EmbedBuilder()
                         .setColor('#5865F2')

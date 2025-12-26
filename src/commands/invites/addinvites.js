@@ -22,14 +22,14 @@ module.exports = {
 
         // Get or create user data
         let userData = await User.findOne({
-            odasi: targetUser.id,
-            odaId: interaction.guild.id
+            userId: targetUser.id,
+            guildId: interaction.guild.id
         });
 
         if (!userData) {
             userData = await User.create({
-                odasi: targetUser.id,
-                odaId: interaction.guild.id
+                userId: targetUser.id,
+                guildId: interaction.guild.id
             });
         }
 

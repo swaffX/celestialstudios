@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    odasi: { type: String, required: true }, // odasi ID
-    odaId: { type: String, required: true }, // Guild ID
+    userId: { type: String, required: true }, // User ID
+    guildId: { type: String, required: true }, // Guild ID
 
     // Leveling
     xp: { type: Number, default: 0 },
@@ -58,14 +58,14 @@ const userSchema = new mongoose.Schema({
 });
 
 // Compound index for faster queries
-userSchema.index({ odasi: 1, odaId: 1 }, { unique: true });
-userSchema.index({ odaId: 1, xp: -1 }); // For leaderboard queries
+userSchema.index({ userId: 1, guildId: 1 }, { unique: true });
+userSchema.index({ guildId: 1, xp: -1 }); // For leaderboard queries
 
 // Static method to find or create user
-userSchema.statics.findOrCreate = async function (odasi, odaId) {
-    let user = await this.findOne({ odasi, odaId });
+userSchema.statics.findOrCreate = async function (userId, guildId) {
+    let user = await this.findOne({ userId, guildId });
     if (!user) {
-        user = await this.create({ odasi, odaId });
+        user = await this.create({ userId, guildId });
     }
     return user;
 };

@@ -89,17 +89,17 @@ async function updateAllStatsEmbeds(client) {
  */
 async function buildStatsEmbed(guild, period = 'weekly') {
     // Get top XP users (all time)
-    const topXP = await User.find({ odaId: guild.id })
+    const topXP = await User.find({ guildId: guild.id })
         .sort({ totalXp: -1 })
         .limit(5);
 
     // Get top message users for period
-    const topMessages = await User.find({ odaId: guild.id })
+    const topMessages = await User.find({ guildId: guild.id })
         .sort({ totalMessages: -1 })
         .limit(5);
 
     // Get top voice users for period
-    const topVoice = await User.find({ odaId: guild.id })
+    const topVoice = await User.find({ guildId: guild.id })
         .sort({ voiceTime: -1 })
         .limit(5);
 
@@ -108,13 +108,13 @@ async function buildStatsEmbed(guild, period = 'weekly') {
     const voiceLeaders = await buildLeaderboard(guild, topVoice, 'voice');
 
     // Calculate totals
-    const totalUsers = await User.countDocuments({ odaId: guild.id });
+    const totalUsers = await User.countDocuments({ guildId: guild.id });
     const totalMessagesResult = await User.aggregate([
-        { $match: { odaId: guild.id } },
+        { $match: { guildId: guild.id } },
         { $group: { _id: null, total: { $sum: '$totalMessages' } } }
     ]);
     const totalVoiceResult = await User.aggregate([
-        { $match: { odaId: guild.id } },
+        { $match: { guildId: guild.id } },
         { $group: { _id: null, total: { $sum: '$voiceTime' } } }
     ]);
 
@@ -256,7 +256,7 @@ async function buildLeaderboard(guild, users, type) {
             value = `\`${formatDuration(user.voiceTime)}\``;
         }
 
-        lines.push(`${medals[i]} <@${user.odasi}> — ${value}`);
+        lines.push(`${medals[i]} <@${user.userId}> — ${value}`);
     }
 
     return lines.length > 0 ? lines.join('\n') : null;

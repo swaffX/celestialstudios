@@ -193,7 +193,7 @@ module.exports = {
             const guildSettings = await Guild.findOrCreate(interaction.guild.id);
 
             const existingTicket = await Ticket.findOne({
-                odaId: interaction.guild.id,
+                guildId: interaction.guild.id,
                 userId: interaction.user.id,
                 status: 'open'
             });
@@ -283,7 +283,7 @@ module.exports = {
             });
 
             await Ticket.create({
-                odaId: interaction.guild.id,
+                guildId: interaction.guild.id,
                 channelId: ticketChannel.id,
                 userId: interaction.user.id,
                 userTag: interaction.user.tag,

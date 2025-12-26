@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
-    odaId: { type: String, required: true },
+    guildId: { type: String, required: true },
     channelId: { type: String, required: true, unique: true },
     userId: { type: String, required: true },
     userTag: { type: String, required: true },
 
     // Ticket Info
     ticketNumber: { type: Number, required: true },
-    subject: { type: String, default: 'Destek Talebi' },
+    subject: { type: String, default: 'Support Request' },
 
     // Status
     status: {
@@ -40,7 +40,7 @@ const ticketSchema = new mongoose.Schema({
 });
 
 // Indexes
-ticketSchema.index({ odaId: 1, status: 1 });
-ticketSchema.index({ userId: 1, odaId: 1 });
+ticketSchema.index({ guildId: 1, status: 1 });
+ticketSchema.index({ userId: 1, guildId: 1 });
 
 module.exports = mongoose.model('Ticket', ticketSchema);

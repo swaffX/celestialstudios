@@ -19,8 +19,8 @@ module.exports = {
 
         // Get bot data
         let userData = await User.findOne({
-            odasi: targetUser.id,
-            odaId: interaction.guild.id
+            userId: targetUser.id,
+            guildId: interaction.guild.id
         });
 
         const embed = new EmbedBuilder()

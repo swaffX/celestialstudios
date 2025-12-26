@@ -21,8 +21,8 @@ module.exports = {
 
             // Get user's invite count
             const userData = await User.findOne({
-                odasi: interaction.user.id,
-                odaId: interaction.guild.id
+                userId: interaction.user.id,
+                guildId: interaction.guild.id
             });
 
             const totalInvites = userData

@@ -20,7 +20,7 @@ module.exports = {
 
         // Get total count
         const totalUsers = await User.countDocuments({
-            odaId: interaction.guild.id,
+            guildId: interaction.guild.id,
             invites: { $gt: 0 }
         });
         const totalPages = Math.ceil(totalUsers / perPage) || 1;
@@ -29,7 +29,7 @@ module.exports = {
         // Get users for this page (sorted by invites)
         // Get users for this page (sorted by total raw invites for now)
         const users = await User.find({
-            odaId: interaction.guild.id,
+            guildId: interaction.guild.id,
             'invites.total': { $gt: 0 }
         })
             .sort({ 'invites.total': -1 })
@@ -61,7 +61,7 @@ module.exports = {
             // Try to get username
             let username = 'Unknown User';
             try {
-                const member = await interaction.guild.members.fetch(user.odasi);
+                const member = await interaction.guild.members.fetch(user.userId);
                 username = member.user.username;
             } catch {
                 // User might have left
@@ -92,8 +92,8 @@ module.exports = {
             .setTimestamp();
 
         // Find requester's rank
-        const userRank = (await User.find({ odaId: interaction.guild.id }).sort({ invites: -1 }))
-            .findIndex(u => u.odasi === interaction.user.id) + 1;
+        const userRank = (await User.find({ guildId: interaction.guild.id }).sort({ invites: -1 }))
+            .findIndex(u => u.userId === interaction.user.id) + 1;
 
         if (userRank > 0) {
             embed.addFields({

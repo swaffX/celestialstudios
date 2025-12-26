@@ -23,7 +23,7 @@ module.exports = {
             if (!guildSettings.levelSystem?.enabled && !guildSettings.features?.leveling) return;
 
             // First check RAW data to see if migration is needed (bypass Mongoose casting)
-            const rawUser = await User.findOne({ odasi: message.author.id, odaId: message.guild.id }).lean();
+            const rawUser = await User.findOne({ userId: message.author.id, guildId: message.guild.id }).lean();
 
             if (rawUser && (typeof rawUser.invites === 'number' || rawUser.invites === undefined)) {
 
