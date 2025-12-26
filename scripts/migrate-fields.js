@@ -21,9 +21,40 @@ async function migrate() {
 
         const db = mongoose.connection.db;
 
-        // Migrate Users collection
-        console.log('📝 Migrating users collection...');
+        // ========== STEP 1: DROP OLD INDEXES FIRST ==========
+        console.log('🗑️  Dropping old indexes...');
         const usersCollection = db.collection('users');
+        const ticketsCollection = db.collection('tickets');
+
+        // Get existing indexes and drop old ones
+        try {
+            const userIndexes = await usersCollection.indexes();
+            for (const idx of userIndexes) {
+                if (idx.name.includes('odasi') || idx.name.includes('odaId')) {
+                    console.log(`   Dropping index: ${idx.name}`);
+                    await usersCollection.dropIndex(idx.name);
+                }
+            }
+            console.log('   ✅ Old user indexes dropped');
+        } catch (e) {
+            console.log('   ℹ️  No old user indexes to drop or already dropped');
+        }
+
+        try {
+            const ticketIndexes = await ticketsCollection.indexes();
+            for (const idx of ticketIndexes) {
+                if (idx.name.includes('odaId')) {
+                    console.log(`   Dropping index: ${idx.name}`);
+                    await ticketsCollection.dropIndex(idx.name);
+                }
+            }
+            console.log('   ✅ Old ticket indexes dropped');
+        } catch (e) {
+            console.log('   ℹ️  No old ticket indexes to drop or already dropped');
+        }
+
+        // ========== STEP 2: MIGRATE USERS COLLECTION ==========
+        console.log('\n📝 Migrating users collection...');
 
         // Check if old fields exist
         const sampleUser = await usersCollection.findOne({ odasi: { $exists: true } });
@@ -43,9 +74,8 @@ async function migrate() {
             console.log('   ℹ️  Users already migrated or no documents found');
         }
 
-        // Migrate Tickets collection
+        // ========== STEP 3: MIGRATE TICKETS COLLECTION ==========
         console.log('📝 Migrating tickets collection...');
-        const ticketsCollection = db.collection('tickets');
 
         const sampleTicket = await ticketsCollection.findOne({ odaId: { $exists: true } });
 
@@ -63,27 +93,19 @@ async function migrate() {
             console.log('   ℹ️  Tickets already migrated or no documents found');
         }
 
-        // Update indexes
-        console.log('\n📊 Updating indexes...');
+        // ========== STEP 4: CREATE NEW INDEXES ==========
+        console.log('\n📊 Creating new indexes...');
 
         try {
-            // Drop old indexes if they exist
-            await usersCollection.dropIndex('odasi_1_odaId_1').catch(() => { });
-            await usersCollection.dropIndex('odaId_1_xp_-1').catch(() => { });
-
-            // Create new indexes
             await usersCollection.createIndex({ userId: 1, guildId: 1 }, { unique: true });
             await usersCollection.createIndex({ guildId: 1, xp: -1 });
-            console.log('   ✅ User indexes updated');
-
-            await ticketsCollection.dropIndex('odaId_1_status_1').catch(() => { });
-            await ticketsCollection.dropIndex('userId_1_odaId_1').catch(() => { });
+            console.log('   ✅ User indexes created');
 
             await ticketsCollection.createIndex({ guildId: 1, status: 1 });
             await ticketsCollection.createIndex({ userId: 1, guildId: 1 });
-            console.log('   ✅ Ticket indexes updated');
+            console.log('   ✅ Ticket indexes created');
         } catch (indexError) {
-            console.log('   ⚠️  Index update warning:', indexError.message);
+            console.log('   ⚠️  Index creation warning:', indexError.message);
         }
 
         console.log('\n✅ Migration completed successfully!\n');
